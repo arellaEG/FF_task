@@ -1,10 +1,3 @@
-# FF_task
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Aug 06 12:23:19 2018
-8c4
-@author: Arella Gussow
-"""
 
 import random
 import csv
