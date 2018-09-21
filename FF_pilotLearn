@@ -1,0 +1,161 @@
+import random
+import csv
+import sys
+import numpy as np
+from psychopy import visual, core, event, gui
+
+#define keys to be used and corresponding phonemes from stim creation
+capKeys = {'S':'1','C':'2','g':'3','k':'4',
+          'U':'c','a':'v','x':'n','i':'m','b':'8','p':'9','f':'0','v':'minus'}
+keys=capKeys.values()
+
+## NOT IN IPA!!!!! for programming purposes: sh=S, ch=C, oo=U, ee=x
+allWords= ['SUb','CUp','gxf','kxv','Saf','Cav','gip','kib']
+
+
+##running from pre-saved pics
+win = visual.Window([800, 500], fullscr=True,
+                        color="white", units='pix')
+breakText=visual.TextStim(win=win, height=40,
+                 text="Please take a short break. Press 'c' to continue.",
+                 color='grey')
+endText=visual.TextStim(win=win, height=40,
+                 text="All Done! Please call the experimenter.",
+                 color='grey')
+
+wrongText=visual.TextStim(win=win, height=40,
+                 text="Look at the pattern again and give it another try.",
+                 color='grey')
+
+
+fixation= visual.ShapeStim(win, vertices=((0, -80), (0, 80), (0,0), 
+                                               (80,0), (-80, 0)),
+                                        lineWidth=5, closeShape=False, 
+                                        lineColor='grey')
+
+pic1 = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(0,0), size=(800,500))
+picShape= visual.ImageStim(win=win, mask=None,interpolate=True,pos=(-400,-200), size=(127,123))
+picTest = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(0,0), size=(127,123))
+
+
+##shows keyboard template, with three keys colored blue, yellow, red (order of press).
+##then shows question mark and waits for paricipant to key in the same pattern. 
+## if wrong, text shows up saying so and they must try again.
+
+seen=[]
+def showTap(word):
+    while True: 
+        viewAcc=[]        
+        pic1.setImage('8w_constrained/'+word+'_8wFF.png')
+        pic1.draw()
+        picShape.setImage('Shapes/'+word+'.png')
+        picShape.draw()
+        win.flip()
+        capInd=1
+        for curCap in word:
+            response=(event.waitKeys(keyList=keys))[0]
+            if response==capKeys[curCap]:
+                viewAcc.append(response)                    
+            string=[str(var) for var in word, curCap, response, 
+                    capKeys[curCap], len(viewAcc)]
+            print string
+            capInd+=1                 
+        if len(viewAcc)<3:
+            core.wait(1)
+            viewAcc=[]
+            wrongText.draw()
+            win.flip()
+            core.wait(1)
+        elif len(viewAcc)==3:
+            core.wait(1)
+            break
+        gimmeAbreak(breakTime) 
+
+
+tested=set()
+def testShape(word):
+    while True: 
+        testAcc=[]         
+        picTest.setImage('Shapes/'+word+'.png')
+        picTest.draw()
+        win.flip()
+        capInd=1
+        for curCap in word:
+            response=(event.waitKeys(keyList=keys))[0]
+            if response==capKeys[curCap]:
+                testAcc.append(response)                    
+            string=[str(var) for var in word, curCap, response, 
+                    capKeys[curCap], len(testAcc)]
+            print string
+            capInd+=1                 
+        if len(testAcc)<3:
+            core.wait(.5)
+            testAcc=[]
+            wrongText.draw()
+            win.flip()            
+            core.wait(1)
+            showTap(word)
+            break
+        elif len(testAcc)==3:
+            if word not in tested:
+                tested.update([word])
+            core.wait(.5)
+            break
+
+        string=[str(var) for var in word, len(testAcc)]
+        print string
+        line='\t'.join(string) + '\n'
+        resultsFile.write(line)
+        resultsFile.flush()                                    
+        core.wait(.5)           
+        fixation.draw()
+        win.flip()
+        core.wait(.5)
+        gimmeAbreak(breakTime) 
+
+
+
+def gimmeAbreak(breakTime):
+    if int(breakTime.getTime())>40:
+            breakClick=False
+            while not breakClick:
+                breakText.draw()
+                win.flip()
+                stop= event.waitKeys(['c','q'])
+                if stop==['c']:
+                    breakTime.reset()
+                    breakClick=True
+                elif stop==['q']:
+                    win.close()
+                    core.quit()
+
+
+
+with open('subject'+'_learn8w.txt','w') as resultsFile:
+    core.wait(2)
+    breakTime=core.Clock()
+    trialNum=0
+    for word in allWords:
+        showTap(word)
+        testShape(word)
+        fixation.draw()
+        win.flip()
+        core.wait(1)
+        if len(tested)>1:
+            backTest=(list(tested))*4
+            random.shuffle(backTest)
+            for t in backTest:
+                testShape(t)
+                fixation.draw()
+                win.flip()
+                core.wait(1)
+        gimmeAbreak(breakTime)
+                 
+    
+    endText.draw()
+    resultsFile.close()
+    win.flip()
+    core.wait(5)
+    win.close()
+win.close()
+core.quit()
