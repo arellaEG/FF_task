@@ -1,0 +1,79 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug 06 11:18:45 2018
+
+@author: Arella Gussow
+"""
+
+import random
+import csv
+import sys
+import numpy as np
+from psychopy import visual, core, event, gui
+from itertools import combinations, permutations
+
+#def create all words (first con NOT sec con)
+phonemes=['S','C','g','k','U','a','x','i','b','p','f','v']
+cons=['S','C','g','k','b','p','f','v']
+vowels=['U','a','x','i']
+onsets=['S','C','g','k']
+codas=['b','p','f','v']
+colorOrder=['blue','yellow','red']
+
+words=set()
+for c1 in onsets:
+    for c2 in codas:
+        w1=c1+vowels[0]+c2
+        w2=c1+vowels[1]+c2
+        w3=c1+vowels[2]+c2
+        w4=c1+vowels[3]+c2
+        words.update([w1,w2,w3,w4])
+
+#create object for presenting key combinations required to copy
+class Tap:
+    def __init__(self):
+        self.win = visual.Window([800, 500], fullscr=True,
+                        color="white", units='pix')
+        self.capList = phonemes        
+        self.locations=[(-440,170),(-340, 170),(-240, 170),(-140, 170),
+                        (-200, -200), (-100,-200),(100, -200), (200, -200),
+                        (140, 170),(240, 170), (340,170),(440,170)]
+        self.fixation= visual.ShapeStim(self.win, vertices=((0, -80), (0, 80), (0,0), 
+                                                            (80,0), (-80, 0)),
+                                        lineWidth=5, closeShape=False, lineColor='grey')
+    def setRectangles(self, colorOrder, word):
+        """Create rectangles (visual.Rect) of height and width size and set their positions. Returns a list of rectangles """    
+        self.rectangles = [visual.Rect(self.win, size = (120,120),fillColor='grey', lineColor='grey',
+                                       units="pix") for i in range(len(self.capList))]
+        self.colors = []
+        for cap in self.capList:
+            if cap not in word:
+                self.colors.append('grey')
+            elif cap in word:
+                for i in list(enumerate(word)):
+                    if cap==i[1]:
+                        self.colors.append(colorOrder[i[0]])
+        [rectangle.setPos(location) for rectangle,location in zip(self.rectangles,self.locations)]
+        [rectangle.setFillColor(color) for rectangle,color in zip(self.rectangles,self.colors)]
+        [rectangle.setLineColor(color) for rectangle,color in zip(self.rectangles,self.colors)]
+
+    def drawStims(self,stims):
+        [stim.draw() for stim in stims]
+        
+tap=Tap()
+
+#create fullword screen shots (blue,yellow,red appear together)
+tap.setRectangles(['grey'], 'www')
+tap.drawStims(tap.rectangles)
+tap.win.flip()
+tap.win.getMovieFrame()
+tap.win.saveMovieFrames('AAA_8wFF.png')     
+for curWord in words:
+    tap.setRectangles(colorOrder, curWord)
+    tap.drawStims(tap.rectangles)
+    tap.win.flip()
+    tap.win.getMovieFrame()
+    tap.win.saveMovieFrames(curWord + '_8wFF.png') 
+    core.wait(.2)
+    print curWord
+tap.win.close()
