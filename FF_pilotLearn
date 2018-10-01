@@ -1,82 +1,44 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Aug 06 12:23:19 2018
-
+8c4
 @author: Arella Gussow
 """
 
-##change here for pilots
-subject='i'
-numTrials = 64 #total available: 32 TT (first in csv file) + 48 NON
-b=40 #seconds till break
 
+#for pilots
+subject = 'i' #subj name
+b=40 #sec till break
 ## participants see a break screen every so often (currently set to b = 40 sec)
 ## will not stop mid-trial - waits till post-trial.
 ## to continue, participants will press 'c'. 
 ## for experimenter only: 's' will quit experiment. participants do not know this.
 
-
-
+###########words temporarily changed to Sav and Caf################
 import random
 import csv
 import sys
 import numpy as np
 from psychopy import visual, core, event, gui
+from collections import Counter
+
+
+timer=core.Clock() #total time for learning phase
+
+
 
 
 #define keys to be used and corresponding phonemes from stim creation
-vowels=['U','a','x','i']
-onsets=['S','C','g','k']
-codas=['b','p','f','v']
-
-#1=onset, 2=vowel, 3=coda
-capPos={'S':'1','C':'1','g':'1','k':'1',
-          'U':'2','a':'2','x':'2','i':'2',
-          'b':'3','p':'3','f':'3','v':'3'}
-
 capKeys = {'S':'1','C':'2','g':'3','k':'4',
           'U':'c','a':'v','x':'n','i':'m','b':'8','p':'9','f':'0','v':'minus'}
 keys=capKeys.values()
 
-
-hand = {'S':'Left','C':'Left','g':'Left',
-                   'k':'Left','U':'Left','a':'Left',
-                   'x':'Right','i':'Right',
-                   'b':'Right','p':'Right',
-                   'f':'Right','v':'Right'}
+## NOT IN IPA!!!!! for programming purposes: sh=S, ch=C, oo=U, ee=x
+allWords= ['SUb','CUp','gxf','kxv','Sav','Caf','gip','kib']
 
 
-finger = {'S':'pinky','C':'ring','k':'mid',
-                   'g':'ind','U':'thumb', 'a': 'thumb',
-                   'x':'thumb','i':'thumb',
-                   'b':'ind','p':'mid',
-                   'f':'ring','v':'pinky'}
-
-
-
-### importing trials list from csv file ###
-sep=','
-def importTrials(numTrials):
-    bTrial= open ('8wFF_stim.csv', 'rb')
-    colNames = bTrial.next().rstrip().split(sep)
-    reader=csv.DictReader(bTrial)
-    global trialsList
-    trialsList = []
-    for t in range(numTrials):
-        trialStr=bTrial.next().rstrip().split(sep)
-        assert len(trialStr) == len(colNames)
-        trialDict = dict(zip(colNames, trialStr))
-        trialsList.append(trialDict)
-importTrials(numTrials)
-
-random.shuffle(trialsList)
-
-
-
-
-
-## running from pre-saved pics
-win = visual.Window([800, 500], fullscr=True,
+##running from pre-saved pics
+win = visual.Window([960,600], fullscr=True,
                         color="white", units='pix')
 breakText=visual.TextStim(win=win, height=40,
                  text="Please take a short break. Press 'c' to continue.",
@@ -94,86 +56,112 @@ fixation= visual.ShapeStim(win, vertices=((0, -80), (0, 80), (0,0),
                                                (80,0), (-80, 0)),
                                         lineWidth=5, closeShape=False, 
                                         lineColor='grey')
+# keyboard color pattern:
+pic1 = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(0,0), size=(1040,650))
 
-picW1 = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(-300,0), size=(127,123))
-picW2 = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(-100,0), size=(127,123))
-picW3 = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(100,0), size=(127,123))
-picW4 = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(300,0), size=(127,123))
+#shape on bottom left of pic1:
+picShape= visual.ImageStim(win=win, mask=None,interpolate=False,pos=(-500,-300), size=(127,123))
 
-
-curLine = visual.ShapeStim(win=win, vertices=((-500,-100),(-400,-100)), lineColor='blue')
-
-
-
-headers=['Accuracy', 'Rep', 'trialNum', 'wordPos', 'curWord',
-                            'tapPos', 'expTap','RT', 'trialType',
-                            'expHand', 'expFinger', 'ansKey', 
-                            'ansCap', 'ansHand', 
-                                'ansFinger', 'ansPos','errorType']
+#shape in the middle of the screen (testing knowledge of shape, without background pattern)
+picTest = visual.ImageStim(win=win, mask=None,interpolate=False,pos=(0,0), size=(127,123))
 
 
+## shows keyboard template, with three keys colored blue, yellow, red (order of press).
+## on bottom left of screen is tha shape associated with this sequence. 
+## once participant presses the whole sequence, keyboard template dissapears and only the
+## associated shape appears in the middle of the screen, as a cue for participants 
+## to press the previously learned sequence. 
+## if wrong, text shows up saying so and they must try again.
+## if right, repetition begins testing all shapes already learned * 4. At any error,
+## pattern re-displayed for that shape. once repetition completed, new word learned, 
+## and new repetition round begins including it.
 
-## shows 4 shapes in a row, waits for 36 key presses (= 4 words * 3 presses per 
-## word * 3 repetitions). only keys from keyList are valid. 1 results line per
-## key. break after 'b' time.
-## No feedback provided. 
 
-with open(subject+'_pilotTest8w.txt','w') as resultsFile:
-    line='\t'.join(headers) + '\n'
-    resultsFile.write(line)
-    core.wait(2)
-    breakTime=core.Clock()
-    trialNum=0
-    for trial in trialsList:
-        wordPos=0
-        trialNum+=1
-        fixation.draw()
+## the following functions:
+## showTap = presenting keyboard template and shape.
+## testShape = presenting only shape mid screen 
+## gimmeAbreak = show break screen
+
+## task run begins below defining functions 
+
+
+def showTap(word):
+    while True: 
+        viewAcc=[]        
+        pic1.setImage('8w_constrained/'+word+'_8wFF.png')
+        pic1.draw()
+        picShape.setImage('Shapes/'+word+'.png')
+        picShape.draw()
         win.flip()
-        core.wait(1)              
-        picW1.setImage('Shapes/shapesOGnames//'+trial['w1']+'.png')
-        picW2.setImage('Shapes/shapesOGnames//'+trial['w2']+'.png')
-        picW3.setImage('Shapes/shapesOGnames//'+trial['w3']+'.png')
-        picW4.setImage('Shapes/shapesOGnames//'+trial['w4']+'.png')
-        for rep in range(1,4):
-            wordPos=0
-            curLine.vertices = ((-550,-100),(-400,-100))
-            for curWord in trial['fullTrial'].split():               
-                curLine.vertices +=(200,0)
-                picW1.draw()
-                picW2.draw()
-                picW3.draw()
-                picW4.draw()
-                curLine.draw()
-                core.wait(0.5)
-                win.flip()
-                capInd=0
-                wordPos+=1
-                for curTap in curWord:
-                    capInd+=1
-                    timer=core.Clock()
-                    ans=(event.waitKeys(keyList=keys))[0]
-                    RT=int(timer.getTime()*(1000))
-                    tapAcc=1 if ans==capKeys[curTap] else 0              
-                    ansCap=capKeys.keys()[capKeys.values().index(ans)]
-                    errorType= 'same' if (capPos[ansCap]==capInd) else 'diff'
-                    errorType='NA' if tapAcc==1 else errorType
-                    
-                    string=[str(var) for var in tapAcc, rep, trialNum, wordPos, curWord,
-                            capInd, curTap, capKeys[curTap], RT, trial['type'],
-                                hand[curTap], finger[curTap], ans, ansCap, 
-                                hand[ansCap], finger[ansCap], capPos[ansCap], errorType]
-                    print string                             
-                    line='\t'.join(string) + '\n'
-                    resultsFile.write(line)
-                    resultsFile.flush()
-        
-                
+        capInd=1
+        for curCap in word:
+            response=(event.waitKeys(keyList=keys))[0]
+            if response==capKeys[curCap]:
+                viewAcc.append(response)                    
+            string=[str(var) for var in word, curCap, response, 
+                    capKeys[curCap], len(viewAcc)]
+            print string
+            capInd+=1                 
+        if len(viewAcc)<3:
+            core.wait(1)
+            viewAcc=[]
+            wrongText.draw()
+            win.flip()
+            core.wait(1)
+        elif len(viewAcc)==3:
+            core.wait(1)
+            break
+        gimmeAbreak(breakTime) 
+
+
+errMonitor =[] #appends shape name of test item if participant made an error
+tested=set() #set of words that have been tested, regardless of freq
+
+def testShape(word):
+    while True: 
+        testAcc=[]         
+        picTest.setImage('Shapes/'+word+'.png')
+        picTest.draw()
+        win.flip()
+        capInd=1
+        for curCap in word:
+            response=(event.waitKeys(keyList=keys))[0]
+            if response==capKeys[curCap]:
+                testAcc.append(response)                    
+            string=[str(var) for var in word, curCap, response, 
+                    capKeys[curCap], len(testAcc)]
+            print string
+            line='\t'.join(string) + '\n'
+            resultsFile.write(line)
+            resultsFile.flush()          
+            capInd+=1                 
+        if len(testAcc)<3:
+            core.wait(.5)
+            errMonitor.append(word)           
+            testAcc=[]
+            wrongText.draw()
+            win.flip()            
+            core.wait(1)
+            showTap(word)
+            break
+        elif len(testAcc)==3:
+            if word not in tested:
+                tested.update([word])
+            core.wait(.5)
+            break
+
+        string=[str(var) for var in trialNum, word, len(testAcc)]
+        print string
         core.wait(.5)           
         fixation.draw()
         win.flip()
         core.wait(.5)
-                
-        if int(breakTime.getTime())>b:
+        gimmeAbreak(breakTime) 
+
+
+
+def gimmeAbreak(breakTime):
+    if int(breakTime.getTime())>40:
             breakClick=False
             while not breakClick:
                 breakText.draw()
@@ -185,8 +173,73 @@ with open(subject+'_pilotTest8w.txt','w') as resultsFile:
                 elif stop==['s']:
                     win.close()
                     core.quit()
+
+allWords= ['gxf','kxv','Sav','Caf','gip','kib','SUb','CUp']
+backMonitor =[] #counter - appends shape name every time it's presented as backtest item
+
+
+#### TASK RUN BEGINS HERE ### 
+with open(subject+'_learn8w.txt','w') as resultsFile:
+    core.wait(2)
+    breakTime=core.Clock()
+    trialNum=0
+    for word in allWords:
+        showTap(word)
+        testShape(word)
+        fixation.draw()
+        win.flip()
+        core.wait(1)
+        if len(tested)>1:
+            backTest=(list(tested))*4
+            random.shuffle(backTest)
+            backMonitor.extend([x for x in backTest])
+            for t in backTest:
+                testShape(t)
+                fixation.draw()
+                win.flip()
+                core.wait(1)        
+           
+            gimmeAbreak(breakTime)
+    fill =[]
+    count = {word: backMonitor.count(word) for word in allWords}
     
+    ## the following checks for each word how many more repetitions it needs to
+    ## reach 40. the first words learned have been repeated more times (7*4),
+    ## so this ensures equal frequency for all; reaching 10*4. "fill" is a 
+    ## list of the words, each multiplied by the number of times it's missing,
+    ## 'fill' is then shuffled randomly and each word is presented as above.
+    
+    for word in allWords:
+        remain=40-count[word]
+        fill.extend([word for i in range(remain)])
+    random.shuffle(fill)
+    print len(backTest)
+    for word in fill:
+        testShape(word)
+        fixation.draw()
+        win.flip()
+        core.wait(1)
+    
+    ##sanity check that each word was tested 40 times
+    count = {word: backMonitor.count(word) for word in allWords}
+    ##count errors for each word
+    errCount={word: errMonitor.count(word) for word in allWords}
+    ##proportion of errors out of times tested for each word
+    errProp= {word: (int((errMonitor.count(word)/40.0)*100)) for word in allWords}
+    ##stop clock to see how long experiment was
+    totalTime=int(timer.getTime())
+
+    ##not included in results file, just printed to console for sanity check
+    print count
+    print errCount
+    print errProp
+    print totalTime          
     endText.draw()
+    monitor=[str(var) for var in backMonitor, errMonitor, totalTime, 
+             count.values(), errCount.keys(),errCount.values()]
+    line='\t'.join(monitor) + '\n'
+    resultsFile.write(line)
+    resultsFile.flush() 
     resultsFile.close()
     win.flip()
     core.wait(5)
