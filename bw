@@ -1,0 +1,187 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug 06 12:23:19 2018
+8c4
+@author: Arella Gussow
+"""
+
+import random
+import csv
+import sys
+import numpy as np
+from psychopy import visual, core, event, gui
+
+
+### R = tr, L = fl, x = ee. changed for programming purposes of keeping all words same length
+units=['t','R','f','L','ib','xb','oz','uz']
+onsets=['t','R','f','L']
+rhymes=['ib','xb','oz','uz']
+#define keys to be used and corresponding phonemes from stim creation
+capKeys = {'t':'1','R':'2','f':'3','L':'4',
+          'ib':'8','xb':'9','oz':'0', 'uz':'-'}
+
+
+keys=capKeys.values()
+ # order by keyboard layout:
+srtMap = {key: i for i, key in enumerate(['1', '2', '3', '4', '8', '2', '9', '0', '-'])}
+srtWord= {key: i for i, key in enumerate(units)}
+##still under old version
+#hand = {'t':'Right','d':'Right','b':'Right',
+#                   'p':'Right','k':'Left','g':'Left',
+#                   'c':'Left','j':'Left',
+#                   'e':'Left','i':'Right',
+#                   'u':'Left','y':'Right'}
+
+
+#finger = {'T':'ring','D':'ring','S':'mid',
+#                   'Z':'mid','K':'mid', 'G': 'mid',
+#                   'F':'ring','V':'ring',
+#                   'A':'ind','E':'ind',
+#                   'I':'ind','i':'ind'}
+
+
+
+
+
+##running from pre-saved pics
+win = visual.Window([800, 500], fullscr=True,
+                        color="white", units='pix')
+breakText=visual.TextStim(win=win, height=40,
+                 text="Please take a short break. Press 'c' to continue.",
+                 color='black')
+endText=visual.TextStim(win=win, height=40,
+                 text="All Done! Please call the experimenter.",
+                 color='black')
+
+pacer= visual.Circle(win=win, radius = 20, fillColor='blue')
+
+wrongText=visual.TextStim(win=win, height=40,
+                 text="Look at the pattern again and give it another try.",
+                 color='black')
+
+
+fixation= visual.ShapeStim(win, vertices=((0, -80), (0, 80), (0,0), 
+                                               (80,0), (-80, 0)),
+                                        lineWidth=5, closeShape=False, 
+                                        lineColor='grey')
+
+pic1 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,350), size=(1200,300))
+pic2 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,100), size=(1200,300))
+pic3 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-150), size=(1200,300))
+pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-400), size=(1200,300))
+
+
+
+sep=','
+import io
+def importTrials(numTrials):
+    bTrial= open ('trialsTT_wb.csv', 'rb') 
+    colNames = bTrial.next().rstrip().split(sep)
+    reader=csv.DictReader(bTrial)
+    global trialsList
+    trialsList = []
+    for t in range(numTrials):
+        trialStr=bTrial.next().rstrip().split(sep)
+        assert len(trialStr) == len(colNames)
+        trialDict = dict(zip(colNames, trialStr))
+        trialsList.append(trialDict)
+importTrials(32)
+random.shuffle(trialsList)
+
+headers=["trialNum", "rep", "wordInd", "curWord", 
+                        "pressedWord","pressedKeys", "acc", "RT", "trialType", "itemID"]
+
+
+
+
+# define expected keys per word
+
+     
+with open('subject'+'_TTwb.txt','wb') as resultsFile:
+    Rwriter=csv.DictWriter(resultsFile, fieldnames=headers)
+    Rwriter.writeheader()
+    core.wait(2)
+    breakTime=core.Clock()
+    trialNum=0   
+    for trial in trialsList:
+        trialNum+=1
+        fixation.draw()
+        win.flip()
+        core.wait(1)
+        pic1.setImage('stimShots_bw/'+trial['w1']+'_wb.png')            
+        pic2.setImage('stimShots_bw/'+trial['w2']+'_wb.png')           
+        pic3.setImage('stimShots_bw/'+trial['w3']+'_wb.png')
+        pic4.setImage('stimShots_bw/'+trial['w4']+'_wb.png')      
+        for rep in range(1,4):
+            pacer.pos = (-600,590)              
+            wordInd=0
+            for curWord in trial['fullTrial'].split():
+                wordInd+=1
+                expKeys=[]
+                expKeys = [capKeys[curWord[0]], capKeys[curWord[1:]]] # define correct answer keys per word
+                if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
+                    expKeys.append('3') # this is hard coded, see if there's a better way...
+                if curWord[0] == 'F':
+                    expKeys.append('1')
+                pressedWord = []
+                pressedUnits = []
+                pressedKeys = []
+                getKeys = []
+                pacer.pos -=(0,240)
+                pic1.draw()
+                pic2.draw()
+                pic3.draw()
+                pic4.draw()
+                pacer.draw()
+                timer=core.Clock()  
+                win.flip()                                     
+                getKeys = set(event.getKeys(keyList=keys)) # no double presses
+                RT=int(timer.getTime()*(1000)) # what is this timer really getting? :|
+                getKeys=list(getKeys) # to be used for 
+                getKeys.sort()
+                getKeys ="".join(getKeys)              
+                for i in getKeys: 
+                    pressedUnit= [unit for unit, value in capKeys.iteritems() if value == i]
+                    pressedUnits.append(pressedUnit)
+                    pressedWord = pressedWord + pressedUnit
+                pressedWord = sorted(pressedWord, key = lambda x:  srtWord[x])
+                pressedWord = "".join(pressedWord) # gives back the equivalent word of key presses
+                if (len(pressedUnits)>1) and (pressedWord[0]=='R' or pressedWord[0]== 'L'):
+                    pressedWord = pressedWord [0] + pressedWord[2:]  # takes care of the fact that keys 1+2 represent only one unit
+                core.wait(.9)
+                # data written to file + format changes to make it easily readable in excel (lists of pressed keys 
+                # will appear as strings):               
+                add = set(getKeys) - set(expKeys) # key additions
+                om = set(expKeys) - set(getKeys) # key omissions                     
+                expKeys = "".join(expKeys)
+                Acc = 1 if expKeys==getKeys else 0
+                string=[str(var) for var in trialNum, rep, wordInd, curWord, pressedWord, expKeys,
+                        getKeys, Acc, RT, trial['type'], trial['ID'], add, om]
+                print string               
+                line='\t'.join(string) + '\n'
+                resultsFile.write(line)
+                resultsFile.flush()                                     
+                    
+        fixation.draw()
+        win.flip()
+        core.wait(.5)
+        if int(breakTime.getTime())>20:
+            breakClick=False
+            while not breakClick:
+                breakText.draw()
+                win.flip()
+                stop= event.waitKeys(['c','q'])
+                if stop==['c']:
+                    breakTime.reset()
+                    breakClick=True
+                elif stop==['q']:
+                    win.close()
+                    core.quit()
+
+    endText.draw()
+    resultsFile.close()
+    win.flip()
+    core.wait(5)
+    win.close()
+win.close()
+core.quit()
