@@ -10,6 +10,7 @@ import csv
 import sys
 import numpy as np
 from psychopy import visual, core, event, gui
+import time
 
 ### R = tr, L = vl, x = ee. changed for programming purposes of keeping all words same length
 units=['t','R','v','L','eb','xb','ig','ug']
@@ -99,7 +100,7 @@ def draw4():
 # define expected keys per word
 
      
-with open('subject'+'_TTwb.txt','wb') as resultsFile:
+with open('subject'+'_TTwb.csv','wb') as resultsFile:
     Rwriter=csv.DictWriter(resultsFile, fieldnames=headers)
     Rwriter.writeheader()
     core.wait(2)
@@ -114,19 +115,86 @@ with open('subject'+'_TTwb.txt','wb') as resultsFile:
         pic2.setImage('stimShots_bw/'+trial['w2']+'_wb.png')           
         pic3.setImage('stimShots_bw/'+trial['w3']+'_wb.png')
         pic4.setImage('stimShots_bw/'+trial['w4']+'_wb.png')
+        # big red circle disappears, nothing on screen for 1 sec ;
+        # then small blue circle appears and participants must begin              
+
+        
+        wordInd=0 # index of word within triak (first word, second...)
+        rep = 0
+        win.flip()
+        for curWord in trial['fullTrial'].split():
+            core.wait(0.1)
+            wordInd += 1
+            pressedKeys = [] # keys that subject pressed
+            accKeys = [] # accurate presses
+            pressedWord = [] # translates key presses into corresponding word
+            pressedUnits = [] # not important
+            add = [] # keys pressed that were not in word
+            miss = [] # keys not pressed
+            RT = 'NA' # reaction time, to be defined later            
+            expKeys = [capKeys[curWord[0]], capKeys[curWord[1:]]] # define correct answer keys per word
+            if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
+                expKeys.append('3') # this is hard coded, see if there's a better way...
+            if curWord[0] == 'R':
+                expKeys.append('1')
+            expKeys = sorted(expKeys, key = lambda x:  srtMap[x])
+            if wordInd == 1:
+                pic1.draw()
+            elif wordInd == 2:
+                pic2.draw()
+            elif wordInd == 3:
+                pic3.draw()
+            else:
+                pic4.draw()
+            win.flip()     
+            RT = 'NA'
+            # getting responses and reaction time:
+            getKeys = event.waitKeys(keyList=keys)
+            pressedKeys.extend(getKeys)    
+            event.clearEvents()
+            pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
+            pressedKeys ="".join(pressedKeys)              
+            for i in pressedKeys: # translating keys into word
+                pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
+                pressedUnits.append(pressedUnit)
+                pressedWord = pressedWord + pressedUnit
+            pressedWord = sorted(pressedWord, key = lambda x:  srtWord[x])
+            pressedWord = "".join(pressedWord) # gives back the equivalent word of key presses
+            if (len(pressedUnits)>1) and (pressedWord[0]=='R' or pressedWord[0]== 'L'):
+                pressedWord = pressedWord [0] + pressedWord[2:]  # takes care of the fact that keys 1+2 represent only one unit
+
+            # data written to file + format changes to make it easily readable in excel (lists of pressed keys 
+            # will appear as strings):               
+            add = set(pressedKeys) - set(expKeys) # key additions
+            add = "".join(sorted(add, key = lambda x:  srtMap[x])) # sort them by keyboard space
+            miss = set(expKeys) - set(pressedKeys) # key omissions
+            miss = "".join(sorted(miss, key = lambda x:  srtMap[x])) # sort them by keyboard space
+            accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+            expKeys = "".join(expKeys)
+            Acc = 1 if expKeys==pressedKeys else 0
+            string=[str(var) for var in trialNum, trial['type'], trial['ID'], 
+                    rep, wordInd, curWord, pressedWord, 
+                    expKeys, pressedKeys, Acc, RT,  
+                    len(accKeys), accKeys, add, miss]              
+            print string               
+            line='\t'.join(string) + '\n'
+            resultsFile.write(line)
+            resultsFile.flush()
+            pacer.pos -=(0,200)
+            getKeys = []                  
+
+        win.flip()
+        core.wait(3)
         draw4()
         fixationView.draw() # fixation to allow brief viewing - 2 sec of big red circle
         win.flip()
         core.wait(2)
         draw4()
         win.flip() 
-        core.wait(1) # big red circle disappears, nothing on screen for 1 sec ;
-                     # then small blue circle appears and participants must begin              
-
         for rep in range(1,4):
             wordInd=0 # index of word within triak (first word, second...)
             draw4()
-            pacer.pos = (-550,100)
+            pacer.pos = (-550,300)
             pacer.draw()
             win.flip()
             for curWord in trial['fullTrial'].split():
@@ -147,20 +215,31 @@ with open('subject'+'_TTwb.txt','wb') as resultsFile:
                 draw4()
                 pacer.draw()
                 win.flip()
-                reactionTime=core.Clock()
-                pacerTime=core.Clock()              
+                pacerTime=core.Clock()      
+                start = time.clock()
+                react = False
+                event.clearEvents()
                 # getting responses and reaction time:
-                while True:
-                    if pacerTime.getTime()< pacerTempo:
-                        if len(pressedKeys) < 1: 
-                            getKeys = event.getKeys(keyList=keys)
-                            RT=int(reactionTime.getTime()*(1000))  # not a good timer 
-                            pressedKeys.append(getKeys)                              
-                        else: break
-                    else: break
+                while pacerTime.getTime()< pacerTempo:
+                    if len(pressedKeys) < len(expKeys):
+                        getKeys = event.getKeys(keyList=keys)
+                        if len(getKeys) != 0:
+                            #react = True
+                            if react == False:
+                                end = time.clock()
+                                RT = (end - start) * 1000
+                                print RT
+                                react = True
+                        pressedKeys.extend(getKeys)    
+                    else:
+                        print pressedKeys
+                        break
+                event.clearEvents()
+                if react == False:
+                    RT = 'NA'
 
                 core.wait(pacerTempo-(pacerTime.getTime())) # wait full time even if participant answered before time's up
-                pressedKeys = (sorted(set(getKeys), key = lambda x:  srtMap[x]))
+                pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
                 pressedKeys ="".join(pressedKeys)              
                 for i in pressedKeys: # translating keys into word
                     pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
