@@ -1,4 +1,3 @@
-
 ###################################
 ########fill in subject ID #######
 
@@ -487,4 +486,3 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
   
 win.close()
 core.quit()
-                                                                                                 
