@@ -66,8 +66,17 @@ for trial in trialsList:
     for i in transKeys.keys():
         trial['fullTrial'] = trial['fullTrial'].replace(i, transKeys[i])
 
-exampleTrials1 = random.sample(trialsList, 5) # 5 random trials to practice the first word-by-word phase
-exampleTrials2 = random.sample(trialsList, 5) # 5 random trials for FULL practic - both word-by-word and paced by the blue circle
+# first set of 8 practice trials - where they only go through the 4 words one-by-one from top to bottom at their own speed
+# takes every 4th trials from trialsList (unique set of four words - take a look at the trials csv file to understand)
+exTrials1 = [i for i in trialsList if int(i['ID']) in range(1,32,4)]
+
+# 16 trials for FULL practice - both word-by-word and paced by the blue circle:
+# 8 of these will be TT, 8 NON (in our trials file, 1-16 are TT, 17-32 are NON)
+exTTtrials = [i for i in trialsList if int(i['ID']) in range(2,16,2)] # 8 TT examples
+exNONtrials = [i for i in trialsList if int(i['ID']) in range(18,32,2)] # NON examples
+exTrials2 =  exTTtrials + exNONtrials # combine TT and NON for full set of example trials
+
+
 
 # getting all possible words in our experiment(instead of hard coding, go through
 # the trialsList and extract from there - useful in case we change specific words)
@@ -237,7 +246,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
         expKeys = "".join(expKeys)
         Acc = 1 if expKeys==pressedKeys else 0 # accuracy is 1 if all and only correct keys were pressed
-        string=[str(var) for var in curWord, # collect the info we want to keep
+        string=[str(var) for var in subject, curWord, # collect the info we want to keep
                             expKeys, pressedKeys, Acc, accKeys, add, miss]       
         print string
         line='\t'.join(string) + '\n'
@@ -285,7 +294,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
     # though there's a slight difference they're not tols about - words are now presented one-by-one
     # from top to bottom (the way they will be later in the full trials)
  
-    for trial in exampleTrials1: # goes through the 5 random trials we chose earlier
+    for trial in exTrials1: # goes through the 5 random trials we chose earlier
         wordInd = 0 # keeps track of what word number we're at within the trial (1-4)
         set4() # sets the 4 images in place
         for curWord in trial['fullTrial'].split(): # goes through each of the 4 words in the trial
@@ -335,7 +344,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
     cClick (instruct4) # shows second instructions for next part and wait's for 'c'
 
     ####### beginning full trial practice ########
-    for trial in exampleTrials2: # goes through the random 5 trials they'll be practicing
+    for trial in exTrials2: # goes through the random 5 trials they'll be practicing
         fixationCross.draw()
         win.flip()
         core.wait(1)
@@ -388,7 +397,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
             accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
             expKeys = "".join(expKeys)
             Acc = 1 if expKeys==pressedKeys else 0
-            string=[str(var) for var in trial['type'], trial['ID'],  # collect all the info we're interested in
+            string=[str(var) for var in subject, trial['type'], trial['ID'],  # collect all the info we're interested in
                     rep, wordInd, curWord, pressedWord, 
                     expKeys, pressedKeys, Acc, RT,  
                     len(accKeys), accKeys, add, miss]              
@@ -469,7 +478,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                 accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
                 expKeys = "".join(expKeys)
                 Acc = 1 if expKeys==pressedKeys else 0
-                string=[str(var) for var in trial['type'], trial['ID'], 
+                string=[str(var) for var in subject, trial['type'], trial['ID'], 
                         rep, wordInd, curWord,
                         expKeys, pressedKeys, Acc, RT,  
                         len(accKeys), accKeys, add, miss]              
