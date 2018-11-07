@@ -147,7 +147,7 @@ instruct4 = "Then, all 4 templates will \
  circle will appear near the first template. The blue circle is \
  your cue - when it appears next to a template, you press the correct keys \
  for that template. The order will always be the same, from top to bottom, \
- but you must keep up with the speed of the blue circle. /n Let's start \
+ but you must keep up with the speed of the blue circle. \n Let's start \
  with a few trials as an example."
 
 # for participants to press 'c' when they've read instructions on that page
