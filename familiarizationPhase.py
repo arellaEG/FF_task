@@ -171,10 +171,10 @@ def draw4():  # draws the 4 relevant pics
 
 
 def set4(): # sets the 4 relevant pics
-    pic1.setImage('stimShots_FF/'+trial['w1']+'_wb.png')            
-    pic2.setImage('stimShots_FF/'+trial['w2']+'_wb.png')           
-    pic3.setImage('stimShots_FF/'+trial['w3']+'_wb.png')
-    pic4.setImage('stimShots_FF/'+trial['w4']+'_wb.png')
+    pic1.setImage('stimShots_FF/'+trial['w1']+'_FF.png')            
+    pic2.setImage('stimShots_FF/'+trial['w2']+'_FF.png')           
+    pic3.setImage('stimShots_FF/'+trial['w3']+'_FF.png')
+    pic4.setImage('stimShots_FF/'+trial['w4']+'_FF.png')
 
 
 def wordByWord(): # defines which pic should appear in the one-by-one stage
