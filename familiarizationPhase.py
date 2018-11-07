@@ -215,7 +215,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         fixationCross.draw()
         win.flip()
         core.wait(1)
-        pic2.setImage('stimShots_FF/'+curWord+'_wb.png')
+        pic2.setImage('stimShots_FF/'+curWord+'_FF.png')
         pic2.draw()
         win.flip()
         
@@ -266,7 +266,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
     Rwriter=csv.DictWriter(resultsFile, fieldnames= None)
     ccClick = False 
     while not ccClick: # present the following intrsuction screen (includes a pic as an example), until 'c' is pressed
-        centerPic.setImage('stimShots_FF/'+'treeb'+'_wb.png')
+        centerPic.setImage('stimShots_FF/'+'treeb'+'_FF.png')
         centerPic.draw()
         instruct.setText(instruct1) # using the general instruct object but setting it with instruct 1
         instruct.draw()
