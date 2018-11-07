@@ -132,7 +132,7 @@ instruct = visual.TextStim(win=win, height=35,
 
 # intructions for the first part
 instruct1 = "In this task you will see a template of 8 small boxes on the screen, \
-corresponding to the 8 keys you have your fingers on. \n\nHere's an example:"
+corresponding to the 8 keys you have your fingers on:"
 
 
 # appears on the same screen as the previous, but on the bottom
@@ -145,15 +145,16 @@ instruct1b =  visual.TextStim(win=win, height=35,
 
 
 # different instructions that can be set for the general "instruct" object
-instruct2 = "Great! Let's keep practicing."
-instruct3 = "Nice work! \nNow we can begin with practice trials. Every trial\
+instruct2 = "Great! Let's keep practicing. \nThis time there will be no feedback, but make sure to \
+pay attention and press the correct keys."
+instruct3 = "Nice work! \nNow we can begin with full trials. Every trial\
  consists of four templates. First\
  you will have them appear one at a time\
- as you have just practiced."
+like you just practiced."
 instruct4 = "Then, all 4 templates will \
- appear on the screen at once. On the left side of the screen you will see a \
+ appear on the screen at once. \nOn the left side of the screen you will see a \
  red circle. After 2 seconds the red circle will disappear, and a small blue\
- circle will appear near the first template. The blue circle is \
+ circle will appear near the first template. \n\nThe blue circle is \
  your cue - when it appears next to a template, you press the correct keys \
  for that template. The order will always be the same, from top to bottom, \
  but you must keep up with the speed of the blue circle. \n Let's start \
