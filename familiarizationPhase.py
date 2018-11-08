@@ -147,7 +147,7 @@ instruct1b =  visual.TextStim(win=win, height=35,
 # different instructions that can be set for the general "instruct" object
 instruct2 = "Great! Let's keep practicing. \nThis time there will be no feedback, but make sure to \
 pay attention and press the correct keys."
-instruct3 = "Nice work! Now we can begin with full trials. \nEvery trial\
+instruct3 = "Nice work! \nNow we can begin with full trials. Every trial\
  consists of four templates. First\
  you will have them appear one at a time\
 like you just practiced."
@@ -157,7 +157,7 @@ instruct4 = "Then, all 4 templates will \
  circle will appear near the first template. \n\nThe blue circle is \
  your cue - when it appears next to a template, you press the correct keys \
  for that template. The order will always be the same, from top to bottom, \
- but you must keep up with the speed of the blue circle. \n\n Let's start \
+ but you must keep up with the speed of the blue circle. \n Let's start \
  with a few trials as an example."
 
 # for participants to press 'c' when they've read instructions on that page
@@ -210,6 +210,7 @@ def cClick (instructName): # displays instructions and waits for 'c' press - fee
 
 def learn (curWord): # presents template to be pressed, if wrong - says so and returns to word
     while True:
+        RT = 'NA'
         pressedKeys = []
         accKeys=[]
         add = []
@@ -227,13 +228,18 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         core.wait(1)
         pic2.setImage('stimShots_FF/'+curWord+'_FF.png')
         pic2.draw()
+        temp = event.getKeys(keyList=keys)
         win.flip()
-        
-        
+        start = time.clock()
+        react = False
         #### getting responses ####
     
         while len(pressedKeys) < len(expKeys):
             getKeys = event.getKeys(keyList=keys)
+            if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
+                end = time.clock() 
+                RT = (end - start) * 1000 # check how much time passed since we started the RT clock
+                react = True 
             pressedKeys.extend(getKeys)    
             
         #### changing response keys into easy-to-read + writing to results file ####   
@@ -248,7 +254,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         expKeys = "".join(expKeys)
         Acc = 1 if expKeys==pressedKeys else 0 # accuracy is 1 if all and only correct keys were pressed
         string=[str(var) for var in subject, curWord, # collect the info we want to keep
-                            expKeys, pressedKeys, Acc, accKeys, add, miss]       
+                            expKeys, pressedKeys, Acc, RT, accKeys, add, miss]       
         print string
         line='\t'.join(string) + '\n'
         resultsFile.write(line)
@@ -272,7 +278,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
        
 
 
-with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results file in current directory
+with open(subject+'_fam'+'_FF.csv','wb') as resultsFile: # opens new results file in current directory
     Rwriter=csv.DictWriter(resultsFile, fieldnames= None)
     ccClick = False 
     while not ccClick: # present the following intrsuction screen (includes a pic as an example), until 'c' is pressed
@@ -296,9 +302,11 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
     # from top to bottom (the way they will be later in the full trials)
  
     for trial in exTrials1: # goes through the 5 random trials we chose earlier
+        
         wordInd = 0 # keeps track of what word number we're at within the trial (1-4)
         set4() # sets the 4 images in place
         for curWord in trial['fullTrial'].split(): # goes through each of the 4 words in the trial
+            temp = event.getKeys(keyList=keys)
             core.wait(0.1) 
             wordInd += 1
             pressedKeys = [] # keys that subject pressed
@@ -354,6 +362,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
         rep = 0 # rep 0 means it's the word-by-word presentation at the beginnign
         win.flip()
         for curWord in trial['fullTrial'].split(): # goes through each word in current trial
+            temp = event.getKeys(keyList=keys)
             core.wait(0.1)
             wordInd += 1
             # zeroing all variables:
@@ -372,11 +381,11 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                 expKeys.append('1')
             expKeys = sorted(expKeys, key = lambda x:  srtMap[x])
             wordByWord() # function we defined before, making sure only one word is presented at a time, in it's corresponding place from top to bottom
-            win.flip() 
-               
-            # getting responses and reaction time:           
-            getKeys = event.waitKeys(keyList=keys) 
-            pressedKeys.extend(getKeys)    
+            win.flip()  
+            # getting responses and reaction time:       
+            while len(pressedKeys) < len(expKeys):
+                getKeys = event.waitKeys(keyList=keys) 
+                pressedKeys.extend(getKeys)    
             event.clearEvents()
             pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
             pressedKeys ="".join(pressedKeys)              
@@ -419,9 +428,10 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
         win.flip() 
         core.wait(0.5)
         for rep in range(1,4):
+            temp = event.getKeys(keyList=keys)
             wordInd=0 # index of word within trial (first word, second...)
             draw4()
-            pacer.pos = (-550,300) # sets little blue dot at first word
+            pacer.pos = (-550,350) # sets little blue dot at first word
             pacer.draw()
             win.flip()
             for curWord in trial['fullTrial'].split():
@@ -487,7 +497,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                 line='\t'.join(string) + '\n'
                 resultsFile.write(line)
                 resultsFile.flush()
-                pacer.pos -=(0,200)
+                pacer.pos -=(0,250)
  
                                       
         fixationCross.draw()
