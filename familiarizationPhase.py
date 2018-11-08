@@ -127,7 +127,7 @@ centerPic = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,0), size
 # general instructions object, nothing written on it - needs
 # to be set with the numbered instructions that follow:
 instruct = visual.TextStim(win=win, height=35, 
-                 color='black', wrapWidth = 1000, pos = (0,250), alignHoriz='center', 
+                 color='black', wrapWidth = 1000, pos = (0,200), alignHoriz='center', 
                  alignVert='center')
 
 # intructions for the first part
@@ -149,15 +149,14 @@ instruct2 = "Great! Let's keep practicing. \nThis time there will be no feedback
 pay attention and press the correct keys."
 instruct3 = "Nice work! \nNow we can begin with full trials. Every trial\
  consists of four templates. First\
- you will have them appear one at a time\
-like you just practiced."
+ you will have them appear one at a time like you just practiced."
 instruct4 = "Then, all 4 templates will \
  appear on the screen at once. \nOn the left side of the screen you will see a \
  red circle. After 2 seconds the red circle will disappear, and a small blue\
  circle will appear near the first template. \n\nThe blue circle is \
  your cue - when it appears next to a template, you press the correct keys \
  for that template. The order will always be the same, from top to bottom, \
- but you must keep up with the speed of the blue circle. \n Let's start \
+ but you must keep up with the speed of the blue circle. \n\n Let's start \
  with a few trials as an example."
 
 # for participants to press 'c' when they've read instructions on that page
