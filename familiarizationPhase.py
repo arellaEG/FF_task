@@ -168,7 +168,7 @@ cToBegin =  visual.TextStim(win=win, height=35,
 # column names for our results file
 
 headers=["trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
-                        "pressedWord","expKeys", "pressedKeys", 
+                        "expKeys", "pressedKeys", 
                         "acc", "RT", "countCorrect", "correctKeys", 
                         "addedKeys", "missingKeys"]
 
@@ -285,7 +285,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
 
 
 with open(subject+'_fam'+'_FF.csv','wb') as resultsFile: # opens new results file in current directory
-    Rwriter=csv.DictWriter(resultsFile, fieldnames= headers)
+    Rwriter=csv.DictWriter(resultsFile, fieldnames = headers)
     ccClick = False 
     while not ccClick: # present the following intrsuction screen (includes a pic as an example), until 'c' is pressed
         centerPic.setImage('stimShots_FF/'+'treeb'+'_FF.png')
@@ -417,7 +417,7 @@ with open(subject+'_fam'+'_FF.csv','wb') as resultsFile: # opens new results fil
             expKeys = "".join(expKeys)
             Acc = 1 if expKeys==pressedKeys else 0
             string=[str(var) for var in subject, trial['type'], trial['ID'],  # collect all the info we're interested in
-                    rep, wordInd, curWord, pressedWord, 
+                    rep, wordInd, curWord, 
                     expKeys, pressedKeys, Acc, RT,  
                     len(accKeys), accKeys, add, miss]              
             print string 
