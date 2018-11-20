@@ -15,9 +15,9 @@ pacerTempo = 1.2 # speed for first
 ##################################
 ##################################
 
-########$ interval time limit ####
+######## interval time limit ####
 
-intervalTime = 1   
+intervalTime = 0.5   
 
 ##################################
 
