@@ -75,7 +75,7 @@ for trial in trialsList:
 
 
 ##running from pre-saved pics
-win = visual.Window([800, 500], fullscr=True,
+win = visual.Window([800, 500], fullscr=False,
                         color="white", units='pix')
 breakText=visual.TextStim(win=win, height=40,
                  text="Please take a short break. Press 'c' to continue.",
@@ -91,15 +91,26 @@ pacerLocs = {'w1':[0,300], 'w2':[0,100], 'w3':[0,-100], 'w4':[0,-300]}
 startPos = [0,600]
 interStepInterval = 6.0
 
+b1 = visual.Rect(win=win,size=(1800,120),lineColor="pink", pos = ([0,300]))
+b2 = visual.Rect(win=win,size=(1800,120),lineColor="pink", pos = ([0,100]))
+b3 = visual.Rect(win=win,size=(1800,120),lineColor="pink", pos = ([0,-100]))
+b4 = visual.Rect(win=win,size=(1800,120),lineColor="pink", pos = ([0,-300]))
+
+
+
+
+
+
+
 fixationCross= visual.ShapeStim(win, vertices=((0, -80), (0, 80), (0,0), 
                                                (80,0), (-80, 0)),
                                         lineWidth=5, closeShape=False, 
                                         lineColor='grey')
 
-pic1 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,300), size=(1200,280))
-pic2 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,100), size=(1200,280))
-pic3 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-100), size=(1200,280))
-pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-300), size=(1200,280))
+pic1 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,300), size=(1200,62))
+pic2 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,100), size=(1200,62))
+pic3 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-100), size=(1200,62))
+pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-300), size=(1200,62))
 
 
 
@@ -107,6 +118,14 @@ pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-300), size=(
 ###################################################################################
 #### a few things that are repeated in the code, just made them into functions ####
 ###################################################################################
+
+def boundaries():
+    b1.draw()
+    b2.draw()
+    b3.draw()
+    b4.draw()
+    
+
 
 def draw4():  # draws the 4 relevant pics
         pic1.draw()
@@ -222,6 +241,7 @@ with open(subject+'_FF.txt','wb') as resultsFile:
             wordInd=0 # index of word within trial (first word, second...)
             while True:
                 draw4()
+                boundaries()
                 pacer.draw()
                 pacer.pos -= (0,interStepInterval)
                 win.flip()                    
@@ -236,21 +256,22 @@ with open(subject+'_FF.txt','wb') as resultsFile:
                             for i in transKeys.keys(): # translate it (since we used the full 'w1' spelling)
                                 curWord = curWord.replace(i, transKeys[i])                                                    
                             
-#                            wordInd += 1
-#                            pressedKeys = [] # keys that subject pressed
-#                            accKeys = [] # accurate presses
-#                            pressedWord = [] # translates key presses into corresponding word
-#                            pressedUnits = [] # not important
-#                            add = [] # keys pressed that were not in word
-#                            miss = [] # keys not pressed
-#                            RT = 'NA' # reaction time, to be defined later            
-#                            expKeys = [capKeys[curWord[0]], capKeys[curWord[1:]]] # define correct answer keys per word
-#                            if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
-#                                expKeys.append('3') # this is hard coded, see if there's a better way...
-#                            if curWord[0] == 'R':
-#                                expKeys.append('1')
-#                            expKeys = sorted(expKeys, key = lambda x:  srtMap[x])
-#                            pacerTime=core.Clock()
+                            wordInd += 1
+                            pressedKeys = [] # keys that subject pressed
+                            accKeys = [] # accurate presses
+                            pressedWord = [] # translates key presses into corresponding word
+                            pressedUnits = [] # not important
+                            add = [] # keys pressed that were not in word
+                            miss = [] # keys not pressed
+                            RT = 'NA' # reaction time, to be defined later            
+                            expKeys = [capKeys[curWord[0]], capKeys[curWord[1:]]] # define correct answer keys per word
+                            if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
+                                expKeys.append('3') # this is hard coded, see if there's a better way...
+                            if curWord[0] == 'R':
+                                expKeys.append('1')
+                            expKeys = sorted(expKeys, key = lambda x:  srtMap[x])
+
+#
 #                            reactionTime=core.Clock()
 #                            start = time.clock()
 #                            react = False
@@ -270,38 +291,37 @@ with open(subject+'_FF.txt','wb') as resultsFile:
 #                            if react == False:
 #                                RT = 'NA'
 #                            
-#                            # exits the while pacer.contains(p) loop and sorts out the info:
-#                            
-#                            pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
-#                            pressedKeys ="".join(pressedKeys)              
-#                            for i in pressedKeys: # translating keys into word
-#                                pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
-#                                pressedUnits.append(pressedUnit)
-#                                pressedWord = pressedWord + pressedUnit
-#                            pressedWord = sorted(pressedWord, key = lambda x:  srtWord[x])
-#                            pressedWord = "".join(pressedWord) # gives back the equivalent word of key presses
-#                            if (len(pressedUnits)>1) and (pressedWord[0]=='R' or pressedWord[0]== 'L'):
-#                                pressedWord = pressedWord [0] + pressedWord[2:]  # takes care of the fact that keys 1+2 represent only one unit
-#                                
-#                            # data written to file + format changes to make it easily readable in excel (lists of pressed keys 
-#                            # will appear as strings):               
-#                            add = set(pressedKeys) - set(expKeys) # key additions
-#                            add = "".join(sorted(add, key = lambda x:  srtMap[x])) # sort them by keyboard space
-#                            miss = set(expKeys) - set(pressedKeys) # key omissions
-#                            miss = "".join(sorted(miss, key = lambda x:  srtMap[x])) # sort them by keyboard space
-#                            accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
-#                            expKeys = "".join(expKeys)
-#                            Acc = 1 if expKeys==pressedKeys else 0
-#                            string=[str(var) for var in trialNum, trial['type'], trial['ID'], 
-#                                    rep, wordInd, curWord, pressedWord, 
-#                                    expKeys, pressedKeys, Acc, RT,  
-#                                    len(accKeys), accKeys, add, miss]              
-#                            print string               
-#                            line='\t'.join(string) + '\n'
-#                            resultsFile.write(line)
-#                            resultsFile.flush()
-#                            getKeys = []
-#                            
+
+                            pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
+                            pressedKeys ="".join(pressedKeys)              
+                            for i in pressedKeys: # translating keys into word
+                                pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
+                                pressedUnits.append(pressedUnit)
+                                pressedWord = pressedWord + pressedUnit
+                            pressedWord = sorted(pressedWord, key = lambda x:  srtWord[x])
+                            pressedWord = "".join(pressedWord) # gives back the equivalent word of key presses
+                            if (len(pressedUnits)>1) and (pressedWord[0]=='R' or pressedWord[0]== 'L'):
+                                pressedWord = pressedWord [0] + pressedWord[2:]  # takes care of the fact that keys 1+2 represent only one unit
+                                
+                            # data written to file + format changes to make it easily readable in excel (lists of pressed keys 
+                            # will appear as strings):               
+                            add = set(pressedKeys) - set(expKeys) # key additions
+                            add = "".join(sorted(add, key = lambda x:  srtMap[x])) # sort them by keyboard space
+                            miss = set(expKeys) - set(pressedKeys) # key omissions
+                            miss = "".join(sorted(miss, key = lambda x:  srtMap[x])) # sort them by keyboard space
+                            accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+                            expKeys = "".join(expKeys)
+                            Acc = 1 if expKeys==pressedKeys else 0
+                            string=[str(var) for var in trialNum, trial['type'], trial['ID'], 
+                                    rep, wordInd, curWord, pressedWord, 
+                                    expKeys, pressedKeys, Acc, RT,  
+                                    len(accKeys), accKeys, add, miss]              
+                            print string               
+                            line='\t'.join(string) + '\n'
+                            resultsFile.write(line)
+                            resultsFile.flush()
+                            getKeys = []
+                            
                             
                 if  pacer.pos[1] <= -400:
                     pacer.setPos(startPos)
