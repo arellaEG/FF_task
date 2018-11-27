@@ -31,6 +31,7 @@ keys=capKeys.values()
 
 
 
+
  # order by keyboard layout:
 srtMap = {key: i for i, key in enumerate(['1', '2', '3', '4', '7','8', '9', '0'])}
 srtWord= {key: i for i, key in enumerate(units)}
@@ -84,21 +85,21 @@ endText=visual.TextStim(win=win, height=40,
 
 
 ############ PACER SETTINGS - SCROLLING RECTANGLE ###############
-pacer = visual.Rect(win=win,size=(1800,120),lineColor="black", pos = ([0,300]))
+pacer = visual.Rect(win=win,size=(1800,120),lineColor="black", pos = ([0,500]))
 pacerLocs = {'w1':[0,300], 'w2':[0,100], 'w3':[0,-100], 'w4':[0,-300]}
 pacerLoc = {1:'w1', 2:'w2', 3:'w3', 4:'w4'}
-startPos = [0,600]
-interStepInterval = 2.0 #speed
+startPos = [0,500]
+interStepInterval = 3.0 #speed
 
 fixationCross= visual.ShapeStim(win, vertices=((0, -80), (0, 80), (0,0), 
                                                (80,0), (-80, 0)),
                                         lineWidth=5, closeShape=False, 
                                         lineColor='grey')
 
-pic1 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,300), size=(1200,280))
-pic2 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,100), size=(1200,280))
-pic3 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-100), size=(1200,280))
-pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-300), size=(1200,280))
+pic1 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,300), size=(1200,62))
+pic2 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,100), size=(1200,62))
+pic3 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-100), size=(1200,62))
+pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-300), size=(1200,62))
 
 pictures = {1:pic1, 2:pic2, 3:pic3, 4:pic4}
 
@@ -256,10 +257,15 @@ with open(subject+'_FF.txt','wb') as resultsFile:
                 if  pacer.pos[1] <= -400:
                     pacer.setPos(startPos)
                     break
+                if wordInd >= 5:
+                    continue
                 if pacer.overlaps(pictures[wordInd]):
                     if hitBoundary == False:
+                        print pacer.pos[1]
+                        temp = event.getKeys(keyList=keys)
                         hitBoundary = True
                         start = time.clock()
+                        print start
                     if len(pressedKeys) < len(expKeys):
                         getKeys = event.getKeys(keyList=keys)
                         if len(getKeys) != 0:
@@ -271,6 +277,10 @@ with open(subject+'_FF.txt','wb') as resultsFile:
                 else:
                     if hitBoundary:
                         event.clearEvents()
+                        temp = event.getKeys(keyList=keys)
+                        test = time.clock()
+                        print test - start
+                        print pacer.pos[1]
                         pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
                         pressedKeys ="".join(pressedKeys)              
                         for i in pressedKeys: # translating keys into word, not important
@@ -295,7 +305,7 @@ with open(subject+'_FF.txt','wb') as resultsFile:
                         accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
                         expKeys = "".join(expKeys)
                         Acc = 1 if expKeys==pressedKeys else 0
-                        string=[str(var) for var in subject, stage, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
+                        string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                   rep, wordInd, curWord, 
                                                                   expKeys, pressedKeys, Acc, RT,  
                                                                   len(accKeys), accKeys, add, miss]              
@@ -312,8 +322,9 @@ with open(subject+'_FF.txt','wb') as resultsFile:
                         pressedUnits = [] # not important
                         add = [] # keys pressed that were not in word
                         miss = [] # keys not pressed
-                        RT = 'NA' # reaction time, to be defined later     
-                        curWord = trial[pacerLoc[wordInd]]
+                        RT = 'NA' # reaction time, to be defined later   
+                        if wordInd < 5:
+                            curWord = trial[pacerLoc[wordInd]]
                         for i in transKeys.keys(): # translate it (since we used the full 'w1' spelling)
                             curWord = curWord.replace(i, transKeys[i])
                         expKeys = [capKeys[curWord[0]], capKeys[curWord[1:]]] # define correct answer keys per word
