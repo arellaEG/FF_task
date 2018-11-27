@@ -31,7 +31,6 @@ keys=capKeys.values()
 
 
 
-
  # order by keyboard layout:
 srtMap = {key: i for i, key in enumerate(['1', '2', '3', '4', '7','8', '9', '0'])}
 srtWord= {key: i for i, key in enumerate(units)}
