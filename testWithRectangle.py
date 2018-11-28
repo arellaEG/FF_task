@@ -261,19 +261,19 @@ with open(subject+'_FF.txt','wb') as resultsFile:
                     continue
                 if pacer.overlaps(pictures[wordInd]):
                     if hitBoundary == False:
-                        print pacer.pos[1]
                         temp = event.getKeys(keyList=keys)
                         hitBoundary = True
                         start = time.clock()
-                        print start
+                        startt = core.Clock()
                     if len(pressedKeys) < len(expKeys):
                         getKeys = event.getKeys(keyList=keys)
                         if len(getKeys) != 0:
                             if react == False:
                                 end = time.clock()
-                                RT = (end - start) * 1000
+                                #RT = (end - start) * 1000
+                                RT = startt.getTime() * 1000
                                 react = True
-                        pressedKeys.extend(getKeys)            
+                        pressedKeys.extend(getKeys)       
                 else:
                     if hitBoundary:
                         event.clearEvents()
