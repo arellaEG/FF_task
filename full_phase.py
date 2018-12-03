@@ -1,3 +1,11 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec  3 14:55:17 2018
+
+@author: arella
+"""
+
 ##################################
 ########fill in subject ID #######
 ##################################
@@ -61,7 +69,7 @@ srtWord= {key: i for i, key in enumerate(units)} # the same but for letters, tra
 
 sep=','
 def importTrials(numTrials):
-    bTrial= open ('CS.csv', 'rb') 
+    bTrial= open ('TTstim.csv', 'rb') 
     colNames = bTrial.next().rstrip().split(sep)
     reader=csv.DictReader(bTrial)
     global trialsList
@@ -71,7 +79,7 @@ def importTrials(numTrials):
         assert len(trialStr) == len(colNames)
         trialDict = dict(zip(colNames, trialStr))
         trialsList.append(trialDict)
-importTrials(48)
+importTrials(88)
 
 
 # dictionary of translations from 3-letter code to full word
@@ -85,11 +93,20 @@ for trial in trialsList:
     for i in transKeys.keys():
         trial['fullTrial'] = trial['fullTrial'].replace(i, transKeys[i])
 
+# extract only "familiarization" stage trials from trialsList:
+famTrials = [x for x in trialsList if x['type'] == 'fam'] 
+random.shuffle(famTrials) 
 
-
-famTrials0 = trialsList [0:4] # 4 trials only self-paced
-famTrials = trialsList [4:22] # 18 trials for FULL practice:
+famTrials0 = random.sample(famTrials,4) # 4 random trials only self-paced
+famTrials1 = random.sample(famTrials,18) # 18  random trials for FULL practice:
 # first 3 with no accuracy monitoring, then 15 with monitoring to reach accuracy criterion
+
+
+
+# define all other trials - to be used in the test phase
+trialsList = [x for x in trialsList if x['type'] <> 'fam'] 
+random.shuffle(trialsList) # random order of trials
+
 
 # getting all possible words in our experiment(instead of hard coding, go through
 # the trialsList and extract from there - useful in case we change specific words)
@@ -196,14 +213,17 @@ instruct2b = "A rectangle will scroll down from the top of\
  level of accuracy, the practice phase will end and we can move\
  on to the task itself."
  
-instruct5 = 'Test Phase'
+
 
 
 # message to appear if they're 65 - 84% accurate:
 accNotMet = "Let's practice some more to get you really good. Do your best!" 
  
  
-phaseComplete = "First Phase Completed!"
+phaseComplete = "First Phase Completed! \n\n Now we can finally get \
+    to the task itself. No special instructions this time - it's \
+    exactly what you've been doing until now, just keep it up and \
+    do your best. \n\nGood luck!"
 
 # for participants to press 'c' when they've read instructions on that page
 # and are ready to continue:
@@ -706,17 +726,14 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
          #### saying phase 1 complete. 
          #("else" is of the "if" statement from line 459, "if go:", when beginning trial flow)           
     else:  
-        resultsFile.close()
-        instruct.setText(phaseComplete)
+        resultsFile.close()       
         background.draw()
-        instruct.draw()
+        cClick(phaseComplete)
         win.flip()
-        core.wait(1) 
         
         
 background.draw()
 win.flip()
-cClick(instruct5)
 
 
 
@@ -729,7 +746,7 @@ pacer = visual.Rect(win=win,size=(1700,100),lineColor="black", pos = ([0,250]))
 breakText=visual.TextStim(win=win, height=40,
                  text="Please take a short break. Press 'c' to continue.",
                  color='black')
-endText=visual.TextStim(win=win, height=40,
+finalText=visual.TextStim(win=win, height=40,
                  text="All Done! Please call the experimenter.",
                  color='black')
 
@@ -747,29 +764,10 @@ pic3 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-55), size=(1
 pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-160), size=(1000,50))
 
 
-trialList = []
-sep=','
-import io
-def importTestTrials(numTrials):
-    bTrial= open ('TTstim.csv', 'rb') 
-    colNames = bTrial.next().rstrip().split(sep)
-    reader=csv.DictReader(bTrial)
-    for t in range(numTrials):
-        trialStr=bTrial.next().rstrip().split(sep)
-        assert len(trialStr) == len(colNames)
-        trialDict = dict(zip(colNames, trialStr))
-        trialList.append(trialDict)
-importTestTrials(32)
-random.shuffle(trialList)
-trialList[0]
-for trial in trialList:
-    for i in transKeys.keys():
-        trial['fullTrial'] = trial['fullTrial'].replace(i, transKeys[i])
 headers=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                         "pressedWord","expKeys", "pressedKeys", 
                         "acc", "RT", "countCorrect", "correctKeys", 
                         "addedKeys", "missingKeys"]
-
 
 
     
@@ -782,7 +780,7 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
     core.wait(2)
     breakTime=core.Clock()
     trialNum=0   
-    for trial in trialList:
+    for trial in trialsList:
         trialNum+=1
         background.draw()
         fixationCross.draw()
@@ -995,21 +993,19 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
         fixationCross.draw()
         win.flip()
         core.wait(.5)
-        if int(breakTime.getTime())>80:
+        if  int(breakTime.getTime())>80:
             breakClick=False
             while not breakClick:
                 background.draw()
                 breakText.draw()
                 win.flip()
-                stop= event.waitKeys(['c','q'])
+                stop= event.waitKeys(['c'])
                 if stop==['c']:
                     breakTime.reset()
                     breakClick=True
-                elif stop==['q']:
-                    win.close()
-                    core.quit()
+
     background.draw()
-    endText.draw()
+    finalText.draw()
     resultsFile.close()
     win.flip()
     core.wait(5)
