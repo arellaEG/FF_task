@@ -38,11 +38,11 @@ from psychopy import visual, core, event, gui
 import time
 
 ### R = tr, L = sl, x = ee. changed to keep all words 3 characters.
-units=['t','R','s','L','eb','Xb','ig','Ug']
-onsets=['t','R','s','L']
+units=['t','R','v','L','eb','Xb','ig','Ug']
+onsets=['t','R','v','L']
 rhymes=['eb','Xb','ig','Ug']
 #define keys to be used and corresponding sounds
-capKeys = {'t':'1','R':'2','s':'3','L':'4',
+capKeys = {'t':'1','R':'2','v':'3','L':'4',
           'eb':'7','Xb':'8','ig':'9', 'Ug':'0'}
 keys=capKeys.values()
 
