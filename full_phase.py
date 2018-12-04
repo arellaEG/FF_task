@@ -123,7 +123,17 @@ random.shuffle(allWords)  # shuffle their order before using for practice
 #### running from pre-saved pics ####
 #####################################
 
+dlg = gui.Dlg();
+dlg.addText("Enter the ID: ");
+dlg.addField("subject ID");
+dlg.show();
 
+if dlg.OK:
+    subject = dlg.data[0]
+else:
+    subject = '999'
+
+#####################################
 
 win = visual.Window([800, 500], fullscr=True,
                         color="black", units='pix')
@@ -393,11 +403,15 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
 ###################################################################################
 ###################### actual practice and writing to file ############################
 ###################################################################################
-       
+
+
+        
+################################################
 
 
 with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results file in current directory
     Rwriter=csv.DictWriter(resultsFile, fieldnames = headers)
+    Rwriter.writeheader()
     ccClick = False 
     breakTime=core.Clock()
     #### 1. start with word-by-word single presentation: ####
@@ -483,7 +497,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
             string=[str(var) for var in subject, stage, 'trialNum', trial['type'], trial['ID'], 
                         "rep", wordInd, curWord,
                         expKeys, pressedKeys, Acc, RT,  
-                        len(accKeys), accKeys, add, miss]              
+                        len(accKeys), accKeys, add, miss, 'NA']              
             line='\t'.join(string) + '\n'
             resultsFile.write(line)
             resultsFile.flush()
@@ -579,7 +593,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                 string=[str(var) for var in subject, '3', trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                         rep, wordInd, curWord, 
                         expKeys, pressedKeys, Acc, RT,  
-                        len(accKeys), accKeys, add, miss]              
+                        len(accKeys), accKeys, add, miss, 'NA']              
                 print string 
                   
                 line='\t'.join(string) + '\n'
@@ -767,7 +781,7 @@ pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-160), size=(
 headers=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                         "pressedWord","expKeys", "pressedKeys", 
                         "acc", "RT", "countCorrect", "correctKeys", 
-                        "addedKeys", "missingKeys"]
+                        "addedKeys", "missingKeys", 'accRate']
 
 
     
@@ -796,10 +810,12 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
         background.draw()
         wordInd=0 # index of word within triak (first word, second...)
         rep = 0
+        accCount = []
         win.flip()
         for curWord in trial['fullTrial'].split():
             core.wait(0.1)
             wordInd += 1
+            accRate = 'NA'
             pressedKeys = [] # keys that subject pressed
             accKeys = [] # accurate presses
             pressedWord = [] # translates key presses into corresponding word
@@ -862,7 +878,7 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
             string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'], 
                     rep, wordInd, curWord, pressedWord, 
                     expKeys, pressedKeys, Acc, RT,  
-                    len(accKeys), accKeys, add, miss]              
+                    len(accKeys), accKeys, add, miss, 'NA']              
             print string               
             line='\t'.join(string) + '\n'
             resultsFile.write(line)
@@ -958,6 +974,8 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
                         accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
                         expKeys = "".join(expKeys)
                         Acc = 1 if expKeys==pressedKeys else 0
+                        accCount.append(Acc)
+                        accRate = float(sum(accCount))/len(accCount)
                         string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                   rep, wordInd, curWord, 
                                                                   expKeys, pressedKeys, Acc, RT,  
