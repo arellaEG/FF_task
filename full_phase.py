@@ -17,13 +17,13 @@ subject ='999'
 
 ######### timers  ################
 
-interStepInterval = 1.7 # speed for practice trials until criterion met ~1.2s = 1.8 iSI.
-# speed for test phase will be ~1s per word, which is an iSI of 2.2
+interStepInterval = 1.4 # speed for practice trials until criterion met ~1.2s = 1.4 iSI.
+# speed for test phase will be ~1s per word, which is an iSI of 1.65
 
 
 crit = .85 # criterion for passing practice phase
 
-timeBreak = 60 # every how often they get break screen (will wait till trial ends)
+timeBreak = 80 # every how often they get break screen (will wait till trial ends)
 
 ##################################
 ##################################
@@ -184,7 +184,7 @@ centerPic = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,0), size
 
 # general instructions object, nothing written on it - needs
 # to be set with the numbered instructions that follow:
-instruct = visual.TextStim(win=win, height=35, 
+instruct = visual.TextStim(win=win, height=30, 
                  color='black', wrapWidth = 1000, pos = (0,85), alignHoriz='center', 
                  alignVert='center')
 
@@ -194,11 +194,11 @@ corresponding to the 8 keys you have your fingers on:"
 
 
 # appears on the same screen as the previous, but on the bottom
-instruct1b =  visual.TextStim(win=win, height=35, 
+instruct1b =  visual.TextStim(win=win, height=30, 
                             text ="Your job is to press only the keys of the boxes colored in black.\
                             Press them all at once, as quickly and accurately as you can. \
                             \n\n\tPress 'c' to begin.",
-                 color='black', wrapWidth = 1000, pos = (0,-120), alignHoriz='center', 
+                 color='black', wrapWidth = 1000, pos = (0,-125), alignHoriz='center', 
                  alignVert='center')
 
 
@@ -518,11 +518,10 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
     go = True # initiate experiment flow. when go == false, familiarization phase will end. 
               #  we will make go == false, only when 85% accuracy reached, and it is only 
              # first checked after a minimum of 16 trials. 
-
+    notMet = 0  # monitors how many additional trials they get after initial accuracy not met
     for trial in famTrials: # goes through the control trials they'll be practicing
         stage = 3 # beginning the fullTrials
         accRate = 'NA' # initialize accRate
-        notMet = 0 # monitors how many additional trials they get after initial accuracy not met
         if go:
             background.draw()
             fixationCross.draw()
@@ -644,7 +643,6 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                     win.flip()
                     if  pacer.pos[1] <= -220:
                         pacer = pacer2
-                        print start.getTime()
                         #pacer.setPos(startPos)
                         break
                     if wordInd >=5:
@@ -666,6 +664,7 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                         if hitBoundary:
                             event.clearEvents()
                             temp = event.getKeys(keyList=keys)
+                            print start.getTime()
                             pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
                             pressedKeys ="".join(pressedKeys)              
                             for i in pressedKeys: # translating keys into word, not important
@@ -753,7 +752,7 @@ win.flip()
 
 
 ################################################
-interStepInterval = 1.8
+interStepInterval = 1.65 ###########
 
 pacer = visual.Rect(win=win,size=(1700,100),lineColor="black", pos = ([0,250]))
 
@@ -1011,7 +1010,7 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
         fixationCross.draw()
         win.flip()
         core.wait(.5)
-        if  int(breakTime.getTime())>80:
+        if  int(breakTime.getTime())>timeBreak:
             breakClick=False
             while not breakClick:
                 background.draw()
