@@ -245,11 +245,12 @@ cToBegin =  visual.TextStim(win=win, height=35,
 
 # column names for our results file
 
-headers=["subject", "stage", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
+header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                         "expKeys", "pressedKeys", 
                         "acc", "RT", "countCorrect", "correctKeys", 
-                        "addedKeys", "missingKeys","accRate"]
-
+                        "addedKeys", "missingKeys","accRate", "stage"]
+headers = '\t'.join(header) + '\n'
+#headers="subject\ttrialNum\ttrialType\titemID\trep\twordInd\tcurWord\texpKeys\tpressedKeys\tacc\tRT\tcountCorrect\tcorrectKeys\taddedKeys\tmissingKeys\taccRate\tstage\n"
 
 
 
@@ -363,7 +364,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         
         pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
         pressedKeys ="".join(pressedKeys)              
-        add = set(pressedKeys) - set(pressedKeys) # key additions
+        add = set(pressedKeys) - set(expKeys) # key additions
         add = "".join(sorted(add, key = lambda x:  srtMap[x])) # sort them by keyboard space
         if len(add) == 0:
             add = 'NA'
@@ -374,10 +375,10 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
         expKeys = "".join(expKeys)
         Acc = 1 if expKeys==pressedKeys else 0 # accuracy is 1 if all and only correct keys were pressed
-        string=[str(var) for var in subject, stage, 'trialNum', "trialType", "trialID",
+        string=[str(var) for var in subject, 'trialNum', "trialType", "trialID",
                         "rep", "wordInd", curWord,
                         expKeys, pressedKeys, Acc, RT,  
-                        len(accKeys), accKeys, add, miss, 'NA']      
+                        len(accKeys), accKeys, add, miss, 'NA', stage]      
         print string
         line='\t'.join(string) + '\n'
         resultsFile.write(line)
@@ -410,8 +411,10 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
 
 
 with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results file in current directory
-    Rwriter=csv.DictWriter(resultsFile, fieldnames = headers)
-    Rwriter.writeheader()
+    #Rwriter=csv.DictWriter(resultsFile, fieldnames = headers)
+    #Rwriter.writeheader()
+    resultsFile.write(headers)
+    resultsFile.flush()
     ccClick = False 
     breakTime=core.Clock()
     #### 1. start with word-by-word single presentation: ####
@@ -494,10 +497,10 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
             expKeys = "".join(expKeys)
             
             Acc = 1 if expKeys==pressedKeys else 0
-            string=[str(var) for var in subject, stage, 'trialNum', trial['type'], trial['ID'], 
+            string=[str(var) for var in subject, 'trialNum', trial['type'], trial['ID'], 
                         "rep", wordInd, curWord,
                         expKeys, pressedKeys, Acc, RT,  
-                        len(accKeys), accKeys, add, miss, 'NA']              
+                        len(accKeys), accKeys, add, miss, 'NA', stage]              
             line='\t'.join(string) + '\n'
             resultsFile.write(line)
             resultsFile.flush()
@@ -591,10 +594,10 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                     accKeys = 'NA'
                 expKeys = "".join(expKeys)
                 Acc = 1 if expKeys==pressedKeys else 0
-                string=[str(var) for var in subject, '3', trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
+                string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                         rep, wordInd, curWord, 
                         expKeys, pressedKeys, Acc, RT,  
-                        len(accKeys), accKeys, add, miss, 'NA']              
+                        len(accKeys), accKeys, add, miss, 'NA', stage]              
                 print string 
                   
                 line='\t'.join(string) + '\n'
@@ -696,10 +699,10 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                             if trialNum > 3: # only start counting accuracy after first 3 trials
                                 accCount.append(Acc)
                                 accRate = float(sum(accCount))/len(accCount)
-                            string=[str(var) for var in subject, "3", trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
+                            string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                       rep, wordInd, curWord, 
                                                                       expKeys, pressedKeys, Acc, RT,  
-                                                                      len(accKeys), accKeys, add, miss, accRate]              
+                                                                      len(accKeys), accKeys, add, miss, accRate, stage]              
                             print string 
                             line='\t'.join(string) + '\n'
                             resultsFile.write(line)
@@ -781,11 +784,12 @@ pic3 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-55), size=(1
 pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-160), size=(1000,50))
 
 
-headers=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
+header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                         "expKeys", "pressedKeys", 
                         "acc", "RT", "countCorrect", "correctKeys", 
                         "addedKeys", "missingKeys", 'accRate']
-
+headers = '\t'.join(header) + '\n'
+#headers="subject\ttrialNum\ttrialType\titemID\trep\twordInd\tcurWord\texpKeys\tpressedKeys\tacc\tRT\tcountCorrect\tcorrectKeys\taddedKeys\tmissingKeys\taccRate\n"
 
     
 # define expected keys per word
