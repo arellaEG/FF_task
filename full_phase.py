@@ -245,7 +245,7 @@ cToBegin =  visual.TextStim(win=win, height=35,
 
 # column names for our results file
 
-headers=["trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
+headers=["subject", "stage", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                         "expKeys", "pressedKeys", 
                         "acc", "RT", "countCorrect", "correctKeys", 
                         "addedKeys", "missingKeys","accRate"]
@@ -377,7 +377,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         string=[str(var) for var in subject, stage, 'trialNum', "trialType", "trialID",
                         "rep", "wordInd", curWord,
                         expKeys, pressedKeys, Acc, RT,  
-                        len(accKeys), accKeys, add, miss, accRate]      
+                        len(accKeys), accKeys, add, miss, 'NA']      
         print string
         line='\t'.join(string) + '\n'
         resultsFile.write(line)
@@ -555,14 +555,14 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                 temp = event.getKeys(keyList=keys)
                 win.flip()  
                 ##### getting responses and reaction time ####      
-                start = time.clock()
+                start = core.Clock()
                 react = False
                 
                 while len(pressedKeys) < len(expKeys):
                     getKeys = event.getKeys(keyList=keys)
                     if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
-                        end = time.clock() 
-                        RT = (end - start) * 1000  # check how much time passed since we started the RT clock
+                        #end = time.clock() 
+                        RT = start.getTime() * 1000  # check how much time passed since we started the RT clock
                         react = True 
                     pressedKeys.extend(getKeys)  
                 event.clearEvents()
@@ -586,7 +586,9 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                 miss = "".join(sorted(miss, key = lambda x:  srtMap[x])) # sort them by keyboard space
                 if len(miss) == 0:
                     miss = 'NA'
-                accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+                accKeys = "".join([x for x in pressedKeys if x in expKeys]) 
+                if len(accKeys) == 0:
+                    accKeys = 'NA'
                 expKeys = "".join(expKeys)
                 Acc = 1 if expKeys==pressedKeys else 0
                 string=[str(var) for var in subject, '3', trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
@@ -686,7 +688,9 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                             miss = "".join(sorted(miss, key = lambda x:  srtMap[x])) # sort them by keyboard space
                             if len(miss) == 0:
                                 miss = 'NA'
-                            accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+                            accKeys = "".join([x for x in pressedKeys if x in expKeys])  
+                            if len(accKeys) == 0:
+                                accKeys = 'NA'
                             expKeys = "".join(expKeys)
                             Acc = 1 if expKeys==pressedKeys else 0
                             if trialNum > 3: # only start counting accuracy after first 3 trials
@@ -778,7 +782,7 @@ pic4 = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,-160), size=(
 
 
 headers=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
-                        "pressedWord","expKeys", "pressedKeys", 
+                        "expKeys", "pressedKeys", 
                         "acc", "RT", "countCorrect", "correctKeys", 
                         "addedKeys", "missingKeys", 'accRate']
 
@@ -787,12 +791,13 @@ headers=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWor
 # define expected keys per word
 
      
-with open(subject + '_TTwb.csv','wb') as resultsFile:
+with open(subject + '_TTwb.txt','wb') as resultsFile:
     Rwriter=csv.DictWriter(resultsFile, fieldnames=headers)
     Rwriter.writeheader()
     core.wait(2)
     breakTime=core.Clock()
-    trialNum=0   
+    trialNum=0
+    accCount = []
     for trial in trialsList:
         trialNum+=1
         background.draw()
@@ -809,7 +814,6 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
         background.draw()
         wordInd=0 # index of word within triak (first word, second...)
         rep = 0
-        accCount = []
         win.flip()
         for curWord in trial['fullTrial'].split():
             core.wait(0.1)
@@ -842,15 +846,15 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
             RT = 'NA'
             # getting responses and reaction time:
             
-            start = time.clock()
+            start = core.Clock()
             react = False
             #### getting responses ####
         
             while len(pressedKeys) < len(expKeys):
                 getKeys = event.getKeys(keyList=keys)
                 if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
-                    end = time.clock() 
-                    RT = (end - start) * 1000  # check how much time passed since we started the RT clock
+                    #end = time.clock() 
+                    RT = start.getTime() * 1000  # check how much time passed since we started the RT clock
                     react = True 
                 pressedKeys.extend(getKeys)    
             event.clearEvents()
@@ -869,13 +873,19 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
             # will appear as strings):               
             add = set(pressedKeys) - set(expKeys) # key additions
             add = "".join(sorted(add, key = lambda x:  srtMap[x])) # sort them by keyboard space
+            if len(add) == 0:
+                add = 'NA'
             miss = set(expKeys) - set(pressedKeys) # key omissions
             miss = "".join(sorted(miss, key = lambda x:  srtMap[x])) # sort them by keyboard space
-            accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+            if len(miss) == 0:
+                miss = 'NA'
+            accKeys = "".join([x for x in pressedKeys if x in expKeys])      
+            if len(accKeys) == 0:
+                accKeys = 'NA'
             expKeys = "".join(expKeys)
             Acc = 1 if expKeys==pressedKeys else 0
             string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'], 
-                    rep, wordInd, curWord, pressedWord, 
+                    rep, wordInd, curWord, 
                     expKeys, pressedKeys, Acc, RT,  
                     len(accKeys), accKeys, add, miss, 'NA']              
             print string               
@@ -970,7 +980,9 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
                         miss = "".join(sorted(miss, key = lambda x:  srtMap[x])) # sort them by keyboard space
                         if len(miss) == 0:
                             miss = 'NA'
-                        accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+                        accKeys = "".join([x for x in pressedKeys if x in expKeys])
+                        if len(accKeys) == 0:
+                            accKeys = 'NA'
                         expKeys = "".join(expKeys)
                         Acc = 1 if expKeys==pressedKeys else 0
                         accCount.append(Acc)
@@ -978,7 +990,7 @@ with open(subject + '_TTwb.csv','wb') as resultsFile:
                         string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                   rep, wordInd, curWord, 
                                                                   expKeys, pressedKeys, Acc, RT,  
-                                                                  len(accKeys), accKeys, add, miss]              
+                                                                  len(accKeys), accKeys, add, miss, accRate]              
                         print string 
                         
                         hitBoundary = False
