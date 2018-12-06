@@ -797,7 +797,6 @@ with open(subject + '_TTwb.txt','wb') as resultsFile:
     core.wait(2)
     breakTime=core.Clock()
     trialNum=0
-    accCount = []
     for trial in trialsList:
         trialNum+=1
         background.draw()
@@ -814,6 +813,7 @@ with open(subject + '_TTwb.txt','wb') as resultsFile:
         background.draw()
         wordInd=0 # index of word within triak (first word, second...)
         rep = 0
+        accCount = []
         win.flip()
         for curWord in trial['fullTrial'].split():
             core.wait(0.1)
