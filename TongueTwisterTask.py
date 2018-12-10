@@ -107,7 +107,7 @@ win = visual.Window([800, 500], fullscr=True,
 instruct = visual.TextStim(win=win, height=30, 
                  color='black', wrapWidth = 1000, pos = (0,85), alignHoriz='center', 
                  alignVert='center')
-instruct1 = "In this task you will be reading sequences of words.\
+instruct1 = "In the final part of this experiment you will be reading sequences of words.\
  These are not real words, so we'll start by getting you familiar with\
  them. Each word will be presented in the middle of the screen, and \
  your job is to simply say it loud and clear."
