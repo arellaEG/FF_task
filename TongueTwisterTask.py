@@ -6,10 +6,16 @@ subject ='999'
 ###################################
 ###################################
 
+
 # presents four word from TT trial, one under the other, for participants to read
 # little blue dot on the left serves as pacer - marking which word should
 # be said; moving at a predetermined speed "pacerTempo"
 
+pacerTempo = .45 # speed of pacer
+timeBreak = 80 # every how many seconds do they get a break screen
+
+
+#### imports ####
 import random
 import csv
 import sys
@@ -19,17 +25,15 @@ import pyaudio
 import wave
 
 
-###### AUDIO CONFIGURATION #####
+###################################
+####### AUDIO CONFIGURATION #######
+###################################
 
 SCALE = 500
-
-
-RECORD = True
 CHANNELS = 1
 RATE = 44100
 BUFFER = 2048
 AUDIO = pyaudio.PyAudio()
-AUDIO_DIR = "audio_output"
 
 class _Recorder(object):
 	def __init__(self, fname):
@@ -54,9 +58,10 @@ class _Recorder(object):
 		self.stream.close()
 		self.wav.close()
 
-####
-
-##### trialList creation #####
+###################################
+######## trialList creation #######
+###################################
+        
 sep=','
 import io
 def importTrials(numTrials):
@@ -80,11 +85,6 @@ random.shuffle(exp) # shuffle order of experimental items
 
 # trialsList is 5 familiarization trials, followed by 48 experimental items:
 trialsList = fam+exp
-
-
-pacerTempo = .45 # speed of pacer
-timeBreak = 80 # every how many seconds do they get a break screen
-
 
 
 
@@ -193,12 +193,8 @@ for i in trialsList:
 allWords = list(set(allWords)) # reduce to only unique words, then make into list again
 random.shuffle(allWords)  # shuffle their order before using for practice
 
+with open(subject+'_fam.txt','wb') as resultsFile:
 
-
-     
-with open(subject+'_TTwb.txt','wb') as resultsFile:
-    Rwriter=csv.DictWriter(resultsFile, fieldnames=headers)
-    Rwriter.writeheader()
     cClick(instruct1)
     fixationCross.draw()
     win.flip()
@@ -208,23 +204,34 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
     # the audio file will be a single continous recording, starting just before
     # the first word and ending after the last (will include all silences of
     # fixation time, etc.)
-    audioName = (subject + "_fam.wav")
-    recorder = _Recorder(audioName)
-    recorder.start()
+    recorder = _Recorder(subject + "_fam.wav") # name of fam audio file
+    recorder.start() # begin recording familiarization
+    trialNum = 0 # initiating order for familiarization phase
     for word in allWords: 
+        trialNum+=1
         word0.setText(word)
         word0.draw()
         win.flip()
-        recorder.start()
         core.wait(3)
         fixationCross.draw()
         win.flip()
         core.wait(1)
-    recorder.stop()
+        string = [str(var) for var in subject, word, trialNum]
+        line= '\t'.join(string) + '\n'
+        resultsFile.write(line)
+        resultsFile.flush()
+        
+    recorder.stop() # after going through all words, stop recorder
+    resultsFile.close()
     cClick(instruct2a)
     cClick(instruct2b)
     breakTime=core.Clock()
     trialNum=0   
+
+
+with open(subject+'_TTwb.txt','wb') as resultsFile:
+    Rwriter=csv.DictWriter(resultsFile, fieldnames=headers)
+    Rwriter.writeheader()
     for trial in trialsList:
         trialNum+=1
         fixationCross.draw()
@@ -246,10 +253,10 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
                      # then small blue circle appears and participants must begin              
 
         for rep in range(1,4):
-            # begin recorder, saving file based on subject, trialNum, rep
-            # each recording is a repetition, will include 4 words
+            # begin recorder, saving file name by subject, trialNum, rep
+            # each recording is a rep - will include 4 words
             audioName = (subject + "_" + str(trialNum) + "_" + str(rep) + ".wav")
-            recorder = _Recorder(audioName)
+            recorder = _Recorder(audioName) 
             recorder.start()
             wordInd=0 # index of word within trial (first word, second...)
             write4()
@@ -260,8 +267,7 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
                 wordInd += 1           
                 write4()
                 pacer.draw()
-                win.flip()
-                
+                win.flip()                
                 reactionTime=core.Clock()
                 pacerTime=core.Clock()              
                 core.wait(pacerTempo-(pacerTime.getTime())) # wait full time even if participant answered before time's up
@@ -272,8 +278,8 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
                 line='\t'.join(string) + '\n'
                 resultsFile.write(line)
                 resultsFile.flush()
-                recorder.stop()
-                pacer.pos -=(0,200)                                  
+                pacer.pos -=(0,200)
+            recorder.stop()                                  
         fixationCross.draw()
         win.flip()
         core.wait(.5)
