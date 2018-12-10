@@ -15,10 +15,48 @@ import csv
 import sys
 import numpy as np
 from psychopy import visual, core, event, gui, microphone
-from pyo import *
+import pyaudio
+import wave
 
 
+###### AUDIO CONFIGURATION #####
 
+SCALE = 500
+
+
+RECORD = True
+CHANNELS = 1
+RATE = 44100
+BUFFER = 2048
+AUDIO = pyaudio.PyAudio()
+AUDIO_DIR = "audio_output"
+
+class _Recorder(object):
+	def __init__(self, fname):
+		self.fname = fname
+		self.wav = wave.open(fname, "wb")
+		self.wav.setnchannels(CHANNELS)
+		self.wav.setsampwidth(AUDIO.get_sample_size(pyaudio.paInt16))
+		self.wav.setframerate(RATE)
+		def cb(in_data, count, time_info, status):
+			self.wav.writeframes(in_data)
+			return in_data, pyaudio.paContinue
+		self.stream = AUDIO.open(format = pyaudio.paInt16,
+									channels = 2*CHANNELS,
+									rate = RATE/2,
+									input = True,
+									frames_per_buffer = BUFFER,
+									stream_callback = cb)
+	def start(self):
+		self.stream.start_stream()
+	def stop(self):
+		self.stream.stop_stream()
+		self.stream.close()
+		self.wav.close()
+
+####
+
+##### trialList creation #####
 sep=','
 import io
 def importTrials(numTrials):
@@ -129,16 +167,14 @@ fixationCross= visual.ShapeStim(win, vertices=((0, -80), (0, 80), (0,0),
                                                (80,0), (-80, 0)),
                                         lineWidth=5, closeShape=False, 
                                         lineColor='grey') # used between trials
-word0 = visual.TextStim(win=win,pos=(0,0), height = 60, color='black')
 
+# single-word presentation in the middle of the screen:
+word0 = visual.TextStim(win=win,pos=(0,0), height = 60, color='black')
+# four words at a time, from top(word1) to bottom (word4)
 word1 = visual.TextStim(win=win,pos=(0,300), height = 60, color='black')
 word2 = visual.TextStim(win=win,pos=(0,100), height = 60, color='black')
 word3 = visual.TextStim(win=win,pos=(0,-100), height = 60, color='black')
 word4 = visual.TextStim(win=win,pos=(0,-300), height = 60, color='black')
-
-
-
-
 
 
 def write4():   
@@ -169,14 +205,22 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
     core.wait(3)
     # first they read words one-by-one, we'll use this later when analyzing the data -
     # since these are non-words, we want to make sure they pronounce them our way
-    for word in allWords:  
+    # the audio file will be a single continous recording, starting just before
+    # the first word and ending after the last (will include all silences of
+    # fixation time, etc.)
+    audioName = (subject + "_fam.wav")
+    recorder = _Recorder(audioName)
+    recorder.start()
+    for word in allWords: 
         word0.setText(word)
         word0.draw()
         win.flip()
+        recorder.start()
         core.wait(3)
         fixationCross.draw()
         win.flip()
         core.wait(1)
+    recorder.stop()
     cClick(instruct2a)
     cClick(instruct2b)
     breakTime=core.Clock()
@@ -202,6 +246,11 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
                      # then small blue circle appears and participants must begin              
 
         for rep in range(1,4):
+            # begin recorder, saving file based on subject, trialNum, rep
+            # each recording is a repetition, will include 4 words
+            audioName = (subject + "_" + str(trialNum) + "_" + str(rep) + ".wav")
+            recorder = _Recorder(audioName)
+            recorder.start()
             wordInd=0 # index of word within trial (first word, second...)
             write4()
             pacer.pos = (-200,300)
@@ -218,11 +267,12 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
                 core.wait(pacerTempo-(pacerTime.getTime())) # wait full time even if participant answered before time's up
 
                 string=[str(var) for var in trialNum, trial['type'], trial['ID'], 
-                        rep, wordInd, curWord]              
+                        rep, wordInd, curWord, audioName]              
                 print string               
                 line='\t'.join(string) + '\n'
                 resultsFile.write(line)
                 resultsFile.flush()
+                recorder.stop()
                 pacer.pos -=(0,200)                                  
         fixationCross.draw()
         win.flip()
@@ -245,5 +295,6 @@ with open(subject+'_TTwb.txt','wb') as resultsFile:
     win.flip()
     core.wait(5)
     win.close()
+AUDIO.terminate()
 win.close()
 core.quit()
