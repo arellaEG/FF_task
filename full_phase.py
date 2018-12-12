@@ -34,7 +34,7 @@ timeBreak = 80 # every how often they get break screen (will wait till trial end
 ## intervalTime limit determines how much of an interval we're willing to accept.
 ## if they wait too long between keys in the practice + feedback stage,
 ## they will get a message saying they have to press all keys at once.
-intervalTime = 0.5   
+intervalTime = 1  
 
 ##################################
 
@@ -149,7 +149,7 @@ wrongText=visual.TextStim(win=win, height=40,
                  color='black') # for when they make a mistake and have to press again
 
 wrongTextb=visual.TextStim(win=win, height=40,
-                 text="Try pressing all keys at the same time.",
+                 text="Try to be a little faster.",
                  color='black') # for when they dont press all keys at the same time
 
 
@@ -184,7 +184,7 @@ centerPic = visual.ImageStim(win=win, mask=None,interpolate=True,pos=(0,0), size
 
 # general instructions object, nothing written on it - needs
 # to be set with the numbered instructions that follow:
-instruct = visual.TextStim(win=win, height=30, 
+instruct = visual.TextStim(win=win, height=27, 
                  color='black', wrapWidth = 1000, pos = (0,85), alignHoriz='center', 
                  alignVert='center')
 
@@ -194,9 +194,10 @@ corresponding to the 8 keys you have your fingers on:"
 
 
 # appears on the same screen as the previous, but on the bottom
-instruct1b =  visual.TextStim(win=win, height=30, 
+instruct1b =  visual.TextStim(win=win, height=27, 
                             text ="Your job is to press only the keys of the boxes colored in black.\
-                            Press them all at once, as quickly and accurately as you can. \
+                            First press the keys on the left side (left hand only), and then the right. \
+                            be as quick and accurate as you can!\
                             \n\n\tPress 'c' to begin.",
                  color='black', wrapWidth = 1000, pos = (0,-125), alignHoriz='center', 
                  alignVert='center')
@@ -219,6 +220,8 @@ instruct2b = "A rectangle will scroll down from the top of\
  the screen, indicating when you should press each template.\
  You can press the keys from the first moment the rectangle touches\
  the template, even if it's only partially overlapping.\
+ Remember - for each template you first press the keys on the left side,\
+ and then those on the right.\
  Make sure to keep up with the rectangle's speed! \n\nOnce you reach a high\
  level of accuracy, the practice phase will end and we can move\
  on to the task itself."
@@ -362,7 +365,11 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
             
         #### changing response keys into easy-to-read + writing to results file ####   
         
-        pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
+        pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
+        pressedKeys2 = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+        pressedKeys1 = (sorted(set(pressedKeys1), key = lambda x:  srtMap[x]))
+        pressedKeys1.extend(pressedKeys2)
+        pressedKeys = pressedKeys1
         pressedKeys ="".join(pressedKeys)              
         add = set(pressedKeys) - set(expKeys) # key additions
         add = "".join(sorted(add, key = lambda x:  srtMap[x])) # sort them by keyboard space
@@ -481,7 +488,11 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                     RT = (end - start) * 1000  # check how much time passed since we started the RT clock
                     react = True 
                 pressedKeys.extend(getKeys)  
-            pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
+            pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
+            pressedKeys2 = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+            pressedKeys1 = (sorted(set(pressedKeys1), key = lambda x:  srtMap[x]))
+            pressedKeys1.extend(pressedKeys2)
+            pressedKeys = pressedKeys1
             pressedKeys ="".join(pressedKeys)              
             # data written to file + format changes to make it easily readable in excel (lists of pressed keys 
             # will appear as strings):               
@@ -569,7 +580,11 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                         react = True 
                     pressedKeys.extend(getKeys)  
                 event.clearEvents()
-                pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
+                pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
+                pressedKeys2 = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                pressedKeys1 = (sorted(set(pressedKeys1), key = lambda x:  srtMap[x]))
+                pressedKeys1.extend(pressedKeys2)
+                pressedKeys = pressedKeys1
                 pressedKeys ="".join(pressedKeys)              
                 for i in pressedKeys: # translating keys into word, not important
                     pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
@@ -670,7 +685,11 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                             event.clearEvents()
                             temp = event.getKeys(keyList=keys)
                             print start.getTime()
-                            pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
+                            pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
+                            pressedKeys2 = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                            pressedKeys1 = (sorted(set(pressedKeys1), key = lambda x:  srtMap[x]))
+                            pressedKeys1.extend(pressedKeys2)
+                            pressedKeys = pressedKeys1
                             pressedKeys ="".join(pressedKeys)              
                             for i in pressedKeys: # translating keys into word, not important
                                 pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
@@ -758,8 +777,9 @@ win.flip()
 
 
 
+
 ################################################
-interStepInterval = 1.65 ###########
+interStepInterval = 1.8 ###########
 
 pacer = visual.Rect(win=win,size=(1700,100),lineColor="black", pos = ([0,250]))
 
@@ -862,7 +882,11 @@ with open(subject + '_TTwb.txt','wb') as resultsFile:
                     react = True 
                 pressedKeys.extend(getKeys)    
             event.clearEvents()
-            pressedKeys = (sorted(set(pressedKeys), key = lambda x:  srtMap[x]))
+            pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
+            pressedKeys2 = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+            pressedKeys1 = (sorted(set(pressedKeys1), key = lambda x:  srtMap[x]))
+            pressedKeys1.extend(pressedKeys2)
+            pressedKeys = pressedKeys1
             pressedKeys ="".join(pressedKeys)              
             for i in pressedKeys: # translating keys into word
                 pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
@@ -969,7 +993,11 @@ with open(subject + '_TTwb.txt','wb') as resultsFile:
                             pressedUnit = [unit for unit, value in capKeys.iteritems() if value == i]
                             pressedUnits.append(pressedUnit)
                             pressedWord = pressedWord + pressedUnit
-                        pressedWord = sorted(pressedWord, key = lambda x:  srtWord[x])
+                        pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
+                        pressedKeys2 = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                        pressedKeys1 = (sorted(set(pressedKeys1), key = lambda x:  srtMap[x]))
+                        pressedKeys1.extend(pressedKeys2)
+                        pressedKeys = pressedKeys1
                         pressedWord = "".join(pressedWord) # gives back the equivalent word of key presses
                         if (len(pressedUnits)>1) and (pressedWord[0]=='R' or pressedWord[0]== 'L'):
                             pressedWord = pressedWord [0] + pressedWord[2:]  # takes care of the fact that keys 1+2 represent only one unit
