@@ -53,7 +53,8 @@ rhymes=['eb','Xb','ig','Ug']
 capKeys = {'t':'1','R':'2','v':'3','L':'4',
           'eb':'7','Xb':'8','ig':'9', 'Ug':'0'}
 keys=capKeys.values()
-
+leftKeys=["1", "2", "3", "4"]
+rightKeys=["7", "8", "9", "0"]
 #### map that sort responses based on keyboard layout - so [0,1,9] would turn into [1,9,0] ####
 srtMap = {key: i for i, key in enumerate(['1', '2', '3', '4', '7','8', '9', '0'])}
 srtWord= {key: i for i, key in enumerate(units)} # the same but for letters, translating keys into corresponding sounds - not important for now!
@@ -319,6 +320,7 @@ def cClick (instructName): # displays instructions and waits for 'c' press - fee
 
 def learn (curWord): # presents template to be pressed, if wrong - says so and returns to word
     while True:
+        block = visual.Rect(win=win, size = (700, 200), fillColor = 'white', pos = ([200,50]))
         stage = 1
         RT = 'NA'
         accRate='NA'
@@ -342,27 +344,41 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         pic2.setImage('stimShots_FF/'+curWord+'_FF.png')
         background.draw()
         pic2.draw()
+        block.draw()
         temp = event.getKeys(keyList=keys)
         win.flip()
         start = time.clock()
         react = False
         interval = False
         end = 0
-        #### getting responses ####
-    
-        while len(pressedKeys) < len(expKeys):
+        #### getting responses ###
+        
+        while len(pressedKeys) < len(expKeys) - 1:
             if react:
                 intervalTimer = time.clock()
                 if (intervalTimer - end) > intervalTime:
                     interval = True
                     break
-            getKeys = event.getKeys(keyList=keys)
+            getKeys = event.getKeys(keyList=leftKeys)
             if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
                 end = time.clock() 
                 RT = (end - start) * 1000  # check how much time passed since we started the RT clock
                 react = True
-            pressedKeys.extend(getKeys)    
-            
+            pressedKeys.extend(getKeys)
+        print react
+        if react:
+            block.pos = [-200, 50]
+            background.draw()
+            pic2.draw()
+            block.draw()
+            win.flip()
+            while len(pressedKeys) < len(expKeys):
+                intervalTimer = time.clock()
+                if (intervalTimer - end) > intervalTime:
+                    interval = True
+                    break
+                getKeys = event.getKeys(keyList=rightKeys)
+                pressedKeys.extend(getKeys)
         #### changing response keys into easy-to-read + writing to results file ####   
         
         pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
