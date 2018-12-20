@@ -351,12 +351,15 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
         react = False
         interval = False
         end = 0
+        
+        intervalTime2 = 0.3
+        
         #### getting responses ###
         
         while len(pressedKeys) < len(expKeys) - 1:
             if react:
                 intervalTimer = time.clock()
-                if (intervalTimer - end) > intervalTime:
+                if (intervalTimer - end) > intervalTime2:
                     interval = True
                     break
             getKeys = event.getKeys(keyList=leftKeys)
@@ -366,7 +369,7 @@ def learn (curWord): # presents template to be pressed, if wrong - says so and r
                 react = True
             pressedKeys.extend(getKeys)
         print react
-        if react:
+        if react and not interval:
             block.pos = [-200, 50]
             background.draw()
             pic2.draw()
@@ -733,6 +736,8 @@ with open(subject+'_fam'+'_FF.txt','wb') as resultsFile: # opens new results fil
                             Acc = 1 if expKeys==pressedKeys else 0
                             if trialNum > 3: # only start counting accuracy after first 3 trials
                                 accCount.append(Acc)
+                                if len(accCount) > 120:
+                                    accCount = accCount[1: len(accCount)]
                                 accRate = float(sum(accCount))/len(accCount)
                             string=[str(var) for var in subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                       rep, wordInd, curWord, 
