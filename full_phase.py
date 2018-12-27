@@ -4,7 +4,7 @@ Created on Thu Dec  27 01:34:46 2018
 
 @author: Yuzhe
 """
-class Action:
+class Action(object):
     
     #initialize all variables
     def __init__ (self):

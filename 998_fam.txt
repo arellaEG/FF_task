@@ -1,0 +1,17 @@
+trialNum	trialType	itemID	rep	wordInd	curWord
+998	keeb	1
+998	soog	2
+998	kreeb	3
+998	keb	4
+998	sloog	5
+998	sig	6
+998	seb	7
+998	slig	8
+998	kreb	9
+998	kroog	10
+998	sleeb	11
+998	seeb	12
+998	sleb	13
+998	kig	14
+998	koog	15
+998	krig	16

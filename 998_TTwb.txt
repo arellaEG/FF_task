@@ -1,0 +1,13 @@
+trialNum	trialType	itemID	rep	wordInd	curWord
+1	fam	72	1	1	soog	998_1.wav
+1	fam	72	1	2	kreb	998_1.wav
+1	fam	72	1	3	sleeb	998_1.wav
+1	fam	72	1	4	kig	998_1.wav
+1	fam	72	2	1	soog	998_1.wav
+1	fam	72	2	2	kreb	998_1.wav
+1	fam	72	2	3	sleeb	998_1.wav
+1	fam	72	2	4	kig	998_1.wav
+1	fam	72	3	1	soog	998_1.wav
+1	fam	72	3	2	kreb	998_1.wav
+1	fam	72	3	3	sleeb	998_1.wav
+1	fam	72	3	4	kig	998_1.wav
