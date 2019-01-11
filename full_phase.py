@@ -44,11 +44,11 @@ class Action(object):
         
         ##################################
         ### R = tr, L = sl, x = ee. changed to keep all words 3 characters.
-        self.units=['t','R','v','L','eb','Xb','ig','Ug']
-        self.onsets=['t','R','v','L']
+        self.units=['k','R','s','L','eb','Xb','ig','Ug']
+        self.onsets=['k','R','s','L']
         self.rhymes=['eb','Xb','ig','Ug']
         #define keys to be used and corresponding sounds
-        self.capKeys = {'t':'1','R':'2','v':'3','L':'4',
+        self.capKeys = {'k':'1','R':'2','s':'3','L':'4',
                   'eb':'7','Xb':'8','ig':'9', 'Ug':'0'}
         self.keys=self.capKeys.values()
         self.leftKeys=["1", "2", "3", "4"]
@@ -61,7 +61,7 @@ class Action(object):
         # we have words like "treeb", "slig", "teb" - all different lengths. To keep them equal length
         # within our code, we use the following letters as substitutes. To remember it's 
         # not the real letter, I used upper case.
-        self.transKeys = {'tr':'R','vl':'L','oo':'U','ee':'X'}
+        self.transKeys = {'kr':'R','sl':'L','oo':'U','ee':'X'}
         
     #start the action part
     def start(self):
@@ -71,9 +71,9 @@ class Action(object):
         self.win = visual.Window([800, 500], fullscr=True,
                         color="black", units='pix')
         self.endText=visual.TextStim(win=self.win, height=40,
-                         text="Practice phase completed! \n\nFinally, we can move on to the\
+                         text="Practice phase completed!\n\nFinally, we can move on to the\
                          task itself. It is exactly the same as what you've been doing,\
-                         except this time there will be no feedback. \n\nDo your best!",
+                         except this time there will be no feedback.\n\nDo your best!",
                          color='black')
         
         self.wrongText=visual.TextStim(win=self.win, height=40, 
@@ -116,29 +116,29 @@ class Action(object):
                          alignVert='center')
         
         # intructions for the first part
-        self.instruct1 = "In this task you will see a template of 8 small boxes on the screen, \
+        self.instruct1 = "In this task you will see a template of 8 small boxes on the screen,\
         corresponding to the 8 keys you have your fingers on:"
         
         
         # appears on the same screen as the previous, but on the bottom
         self.instruct1b =  visual.TextStim(win=self.win, height=27, 
                                     text ="Your job is to press only the keys of the boxes colored in black.\
-                                    First press the keys on the left side (left hand only), and then the right. \
+                                    First press the keys on the left side (left hand only), and then the right.\
                                     be as quick and accurate as you can!\
                                     \n\n\tPress 'c' to begin.",
                          color='black', wrapWidth = 1000, pos = (0,-125), alignHoriz='center', 
                          alignVert='center')
         
         
-        self.instruct1c = "Great, looks like you're starting to get the hang of it. \
+        self.instruct1c = "Great, looks like you're starting to get the hang of it.\
         \n\nFrom now on, if you don't press the correct keys\
          you will see a red X on the bottom right of the screen. Let's try to avoid that!"
         
         
         # different instructions that can be set for the general "instruct" object
-        self.instruct2 = "Nice work! \nNow we can begin with full practice trials. \n\n Every trial\
+        self.instruct2 = "Nice work!\nNow we can begin with full practice trials.\n\nEvery trial\
          consists of four templates. First you will have them appear one at a time\
-         like you just practiced. \nThen, all 4 templates will appear on the\
+         like you just practiced.\nThen, all 4 templates will appear on the\
          screen at once. Your task is to press the correct keys for each\
          template in order, from top to bottom. You will repeat the\
          whole sequence 3 times."
@@ -149,7 +149,7 @@ class Action(object):
          the template, even if it's only partially overlapping.\
          Remember - for each template you first press the keys on the left side,\
          and then those on the right.\
-         Make sure to keep up with the rectangle's speed! \n\nOnce you reach a high\
+         Make sure to keep up with the rectangle's speed!\n\nOnce you reach a high\
          level of accuracy, the practice phase will end and we can move\
          on to the task itself."
          
@@ -158,9 +158,9 @@ class Action(object):
         self.accNotMet = "Let's practice some more to get you really good. Do your best!" 
          
          
-        self.phaseComplete = "First Phase Completed! \n\n Now we can finally get \
-            to the task itself. No special instructions this time - it's \
-            exactly what you've been doing until now, just keep it up and \
+        self.phaseComplete = "First Phase Completed!\n\n Now we can finally get\
+            to the task itself. No special instructions this time - it's\
+            exactly what you've been doing until now, just keep it up and\
             do your best. \n\nGood luck!"
         
         # for participants to press 'c' when they've read instructions on that page
@@ -174,8 +174,8 @@ class Action(object):
         
         self.header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                                 "expKeys", "pressedKeys", 
-                                "acc", "RT", "countCorrect", "correctKeys", 
-                                "addedKeys", "missingKeys","accRate", "stage"]
+                                "err", "RT", "countCorrect", "correctKeys", 
+                                "addedKeys", "missingKeys","accRate", "errRate", "expOnset", "pressedOnset", "onsetAcc", "expRhyme", "pressedRhyme", "rhymeAcc", "conCluster","stage"]
         self.headers = '\t'.join(self.header) + '\n'
         #headers="subject\ttrialNum\ttrialType\titemID\trep\twordInd\tcurWord\texpKeys\tpressedKeys\tacc\tRT\tcountCorrect\tcorrectKeys\taddedKeys\tmissingKeys\taccRate\tstage\n"
         
@@ -222,7 +222,7 @@ class Action(object):
         # we have words like "treeb", "slig", "teb" - all different lengths. To keep them equal length
         # within our code, we use the following letters as substitutes. To remember it's 
         # not the real letter, I used upper case.
-        self.transKeys = {'tr':'R','vl':'L','oo':'U','ee':'X'}
+        self.transKeys = {'kr':'R','sl':'L','oo':'U','ee':'X'}
         
         # translating the 'fullTrial' string from the stimuli list
         for trial in self.trialsList:
@@ -238,10 +238,14 @@ class Action(object):
         # first 3 with no accuracy monitoring, then 15 with monitoring to reach accuracy criterion
         
         
-        
+        self.firstTest = []
+        indexNum = random.choice(range(len(self.famTrials)))
+        self.firstTest.append(self.famTrials[indexNum])
         # define all other trials - to be used in the test phase
         self.trialsList = [x for x in self.trialsList if x['type'] <> 'fam'] 
         random.shuffle(self.trialsList) # random order of trials
+        self.trialsList = self.firstTest + self.trialsList
+        
         
         
         # getting all possible words in our experiment(instead of hard coding, go through
@@ -416,17 +420,26 @@ class Action(object):
                 miss = 'NA'
             accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
             expKeys = "".join(expKeys)
-            Acc = 1 if expKeys==pressedKeys else 0 # accuracy is 1 if all and only correct keys were pressed
+            Acc = 0 if expKeys==pressedKeys else 1 # accuracy is 1 if all and only correct keys were pressed
+            pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+            expOnset = expKeys[0: len(expKeys) - 1]
+            pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+            expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
+            onsetAcc = 1 if expOnset == pressedOnset else 0
+            rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+            conCluster = 0
+            if len(expOnset) == 2:
+                conCluster = 1
             string=[str(var) for var in self.subject, 'trialNum', "trialType", "trialID",
                             "rep", "wordInd", curWord,
                             expKeys, pressedKeys, Acc, RT,  
-                            len(accKeys), accKeys, add, miss, 'NA', stage]      
+                            len(accKeys), accKeys, add, miss, 'NA','NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster,stage]      
             print string
             line='\t'.join(string) + '\n'
             self.resultsFile.write(line)
             self.resultsFile.flush()
             self.background.draw()
-            if Acc == 0: # if accuracy is wrong, 
+            if Acc == 1: # if accuracy is wrong, 
                 if interval: # if it's because they didn't press at the same time
                     self.wrongTextb.draw() # tell them to press all at once
                 else: # if they got it wrong for any other reason
@@ -437,7 +450,7 @@ class Action(object):
                 for i in self.transKeys.keys(): # return to coded word
                     curWord = curWord.replace(i, self.transKeys[i])
                 continue # go back to the beginning of this word and have them do it again.
-            elif Acc == 1: # if accuracy is good,
+            elif Acc == 0: # if accuracy is good,
                 break # break loop and go on to next word
     
     
@@ -453,7 +466,7 @@ class Action(object):
             self.breakTime=core.Clock()
             #### 1. start with word-by-word single presentation: ####
             while not ccClick: # present the following instruction screen (includes a pic as an example), until 'c' is pressed
-                self.centerPic.setImage('stimShots_FF/'+'treeb'+'_FF.png')
+                self.centerPic.setImage('stimShots_FF/'+'kreeb'+'_FF.png')
                 self.background.draw()
                 self.centerPic.draw()
                 self.instruct.setText(self.instruct1) # using the general instruct object but setting it with instruct 1
@@ -538,15 +551,24 @@ class Action(object):
                         accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
                         expKeys = "".join(expKeys)
                         
-                        Acc = 1 if expKeys==pressedKeys else 0
+                        Acc = 0 if expKeys==pressedKeys else 1
+                        pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                        expOnset = expKeys[0: len(expKeys) - 1]
+                        pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                        expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
+                        onsetAcc = 1 if expOnset == pressedOnset else 0
+                        rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                        conCluster = 0
+                        if len(expOnset) == 2:
+                            conCluster = 1
                         string=[str(var) for var in self.subject, 'trialNum', trial['type'], trial['ID'], 
                                     "rep", self.wordInd, curWord,
                                     expKeys, pressedKeys, Acc, RT,  
-                                    len(accKeys), accKeys, add, miss, 'NA', stage]              
+                                    len(accKeys), accKeys, add, miss, 'NA', 'NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster, stage]              
                         line='\t'.join(string) + '\n'
                         self.resultsFile.write(line)
                         self.resultsFile.flush()
-                        if Acc == 0:
+                        if Acc == 1:
                             self.background.draw()
                             self.wrongX.draw()
                             self.win.flip()
@@ -640,17 +662,26 @@ class Action(object):
                             if len(accKeys) == 0:
                                 accKeys = 'NA'
                             expKeys = "".join(expKeys)
-                            Acc = 1 if expKeys==pressedKeys else 0
+                            Acc = 0 if expKeys==pressedKeys else 1
+                            pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                            expOnset = expKeys[0: len(expKeys) - 1]
+                            pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                            expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
+                            onsetAcc = 1 if expOnset == pressedOnset else 0
+                            rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                            conCluster = 0
+                            if len(expOnset) == 2:
+                                conCluster = 1
                             string=[str(var) for var in self.subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                     rep, self.wordInd, curWord, 
                                     expKeys, pressedKeys, Acc, RT,  
-                                    len(accKeys), accKeys, add, miss, 'NA', stage]              
+                                    len(accKeys), accKeys, add, miss, 'NA', 'NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster, stage]              
                             print string 
                               
                             line='\t'.join(string) + '\n'
                             self.resultsFile.write(line)
                             self.resultsFile.flush()
-                            if Acc == 0:
+                            if Acc == 1:
                                 self.background.draw()
                                 self.wrongX.draw()
                                 self.win.flip()
@@ -745,16 +776,25 @@ class Action(object):
                                         if len(accKeys) == 0:
                                             accKeys = 'NA'
                                         expKeys = "".join(expKeys)
-                                        Acc = 1 if expKeys==pressedKeys else 0
+                                        Acc = 0 if expKeys==pressedKeys else 1
+                                        pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                                        expOnset = expKeys[0: len(expKeys) - 1]
+                                        pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                                        expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
+                                        onsetAcc = 1 if expOnset == pressedOnset else 0
+                                        rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                                        conCluster = 0
+                                        if len(expOnset) == 2:
+                                            conCluster = 1
                                         if trialNum > 3: # only start counting accuracy after first 3 trials
                                             accCount.append(Acc)
                                             if len(accCount) > 120:
                                                 accCount = accCount[1: len(accCount)]
-                                            accRate = round((float(sum(accCount))/len(accCount)), 2)
+                                            accRate = 1- round((float(sum(accCount))/len(accCount)), 2)
                                         string=[str(var) for var in self.subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                                   rep, self.wordInd, curWord, 
                                                                                   expKeys, pressedKeys, Acc, RT,  
-                                                                                  len(accKeys), accKeys, add, miss, accRate, stage]              
+                                                                                  len(accKeys), accKeys, add, miss, accRate, 1 - accRate, expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster, stage]              
                                         print string 
                                         line='\t'.join(string) + '\n'
                                         self.resultsFile.write(line)
@@ -786,7 +826,7 @@ class Action(object):
                     self.win.flip()
                     core.wait(.5)
                     if trialNum >= 18:
-                        if accRate >= .85:                
+                        if accRate <= .15:                
                             go = False
                         else:
                             if notMet%5 ==0: # only present the following message every five trials
@@ -839,8 +879,8 @@ class Action(object):
         
         self.header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                                 "expKeys", "pressedKeys", 
-                                "acc", "RT", "countCorrect", "correctKeys", 
-                                "addedKeys", "missingKeys", 'accRate']
+                                "err", "RT", "countCorrect", "correctKeys", 
+                                "addedKeys", "missingKeys", 'accRate', 'errRate', 'expOnset', 'pressedOnset', 'onsetAcc', 'expRhyme', 'pressedRhyme', 'rhymeAcc', 'conCluster']
         self.headers = '\t'.join(self.header) + '\n'
         #headers="subject\ttrialNum\ttrialType\titemID\trep\twordInd\tcurWord\texpKeys\tpressedKeys\tacc\tRT\tcountCorrect\tcorrectKeys\taddedKeys\tmissingKeys\taccRate\n"
         
@@ -940,11 +980,20 @@ class Action(object):
                     if len(accKeys) == 0:
                         accKeys = 'NA'
                     expKeys = "".join(expKeys)
-                    Acc = 1 if expKeys==pressedKeys else 0
+                    Acc = 0 if expKeys==pressedKeys else 1
+                    pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                    expOnset = expKeys[0: len(expKeys) - 1]
+                    pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                    expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
+                    onsetAcc = 1 if expOnset == pressedOnset else 0
+                    rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                    conCluster = 0
+                    if len(expOnset) == 2:
+                        conCluster = 1
                     string=[str(var) for var in self.subject, trialNum, trial['type'], trial['ID'], 
                             rep, self.wordInd, curWord, 
                             expKeys, pressedKeys, Acc, RT,  
-                            len(accKeys), accKeys, add, miss, 'NA']              
+                            len(accKeys), accKeys, add, miss, 'NA', 'NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster]              
                     print string               
                     line='\t'.join(string) + '\n'
                     self.resultsFile.write(line)
@@ -1037,13 +1086,22 @@ class Action(object):
                                 if len(accKeys) == 0:
                                     accKeys = 'NA'
                                 expKeys = "".join(expKeys)
-                                Acc = 1 if expKeys==pressedKeys else 0
+                                Acc = 0 if expKeys==pressedKeys else 1
+                                pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                                expOnset = expKeys[0: len(expKeys) - 1]
+                                pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+                                expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
+                                onsetAcc = 1 if expOnset == pressedOnset else 0
+                                rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                                conCluster = 0
+                                if len(expOnset) == 2:
+                                    conCluster = 1
                                 accCount.append(Acc)
-                                accRate = round(float(sum(accCount))/len(accCount), 2)
+                                accRate = 1 - round(float(sum(accCount))/len(accCount), 2)
                                 string=[str(var) for var in self.subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                           rep, self.wordInd, curWord, 
                                                                           expKeys, pressedKeys, Acc, RT,  
-                                                                          len(accKeys), accKeys, add, miss, accRate]              
+                                                                          len(accKeys), accKeys, add, miss, accRate, 1 - accRate, expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster]              
                                 print string 
                                 
                                 hitBoundary = False
