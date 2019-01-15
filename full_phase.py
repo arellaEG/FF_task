@@ -175,7 +175,7 @@ class Action(object):
         self.header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                                 "expKeys", "pressedKeys", 
                                 "err", "RT", "countCorrect", "correctKeys", 
-                                "addedKeys", "missingKeys","accRate", "errRate", "expOnset", "pressedOnset", "onsetAcc", "expRhyme", "pressedRhyme", "rhymeAcc", "conCluster","stage"]
+                                "addedKeys", "missingKeys","accRate", "errRate", "expOnset", "pressedOnset", "onsetAcc", "expRhyme", "pressedRhyme", "rhymeAcc", "conCluster", "stage", "key1", "stamp1", "key2", "stamp2", "key3", "stamp3"]
         self.headers = '\t'.join(self.header) + '\n'
         #headers="subject\ttrialNum\ttrialType\titemID\trep\twordInd\tcurWord\texpKeys\tpressedKeys\tacc\tRT\tcountCorrect\tcorrectKeys\taddedKeys\tmissingKeys\taccRate\tstage\n"
         
@@ -335,6 +335,60 @@ class Action(object):
         else:
             self.subject = '999'
 
+
+    def compare(self, first, second):
+        onset = ('1', '2', '3', '4')
+        #rhyme = ('7', '8', '9', '0')
+        bool1 = onset.__contains__(first)
+        bool2 = onset.__contains__(second)
+        return (bool1 == bool2)
+
+
+
+
+    def split(self, actual):
+        onset = ('1', '2', '3', '4')
+        #rhyme = ('7', '8', '9', '0')
+        pressOnset = 'NA'
+        pressRhyme = 'NA'
+        actualOnset = []
+        actualRhyme = []
+        if len(actual) == 0:
+            return pressOnset, pressRhyme
+        if len(actual) == 1:
+            if onset.__contains__(actual[0]):
+                actualOnset.append(actual[0])
+            else:
+                actualRhyme.append(actual[0])
+        else:
+            for i in range(len(actual)):
+                if i == len(actual) - 1:
+                    if onset.__contains__(actual[0]):
+                        actualOnset.extend(actual)
+                        #actualOnset = (sorted(set(actualOnset), key = lambda x:  self.srtMap[x]))
+                    else:
+                        actualRhyme.extend(actual)
+                        #actualRhyme = (sorted(set(actualRhyme), key = lambda x:  self.srtMap[x]))
+                    break
+                first = actual[i]
+                second = actual[i + 1]
+                compared = self.compare(first, second)
+                if not compared:
+                    actualOnset = actual[0: i + 1]
+                    actualRhyme = actual[i + 1:]
+                    #actualOnset = (sorted(set(actualOnset), key = lambda x:  self.srtMap[x]))
+                    #actualRhyme = (sorted(set(actualRhyme), key = lambda x:  self.srtMap[x]))
+                    break
+            if len(actualOnset) != 0:
+                pressOnset = "".join(actualOnset)
+            if len(actualRhyme) != 0:
+                pressRhyme = "".join(actualRhyme)
+            return pressOnset, pressRhyme
+                    
+                    
+            
+    
+    
     #learn all the words
     def learn (self, curWord): # presents template to be pressed, if wrong - says so and returns to word
         from psychopy import visual, core, event
@@ -343,13 +397,13 @@ class Action(object):
             block = visual.Rect(win=self.win, size = (700, 200), fillColor = 'white', pos = ([200,50]))
             stage = 1
             RT = 'NA'
-            accRate='NA'
             pressedKeys = []
             accKeys=[]
             add = []
             miss = []
+            actualKeys = []
+            timeStamp = []
             expKeys = [self.capKeys[curWord[0]], self.capKeys[curWord[1:]]] # define correct answer keys per word
-            
             if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
                 expKeys.append('3') # this is hard coded, see if there's a better way...
             if curWord[0] == 'R':
@@ -367,7 +421,7 @@ class Action(object):
             block.draw()
             temp = event.getKeys(keyList=self.keys)
             self.win.flip()
-            start = time.clock()
+            start = core.Clock()
             react = False
             interval = False
             end = 0
@@ -383,17 +437,26 @@ class Action(object):
                         interval = True
                         break
                 getKeys = event.getKeys(keyList=self.leftKeys)
-                if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
-                    end = time.clock() 
-                    RT = int((end - start) * 1000)  # check how much time passed since we started the RT clock
-                    react = True
+                if len(getKeys) != 0: # if we haven't collected RTs yet 
+                    if react == False:
+                        end = time.clock()
+                        RT = int(start.getTime() * 1000)  # check how much time passed since we started the RT clock
+                        react = True
+                    for i in range(len(getKeys)):
+                        if i == 0:
+                            timeStamp.append(int(start.getTime() * 1000))
+                        else:
+                            timeStamp.append(0)
+                    start = core.Clock()
+                actualKeys.extend(getKeys)
                 pressedKeys.extend(getKeys)
-            print react
+            #print react
             if react and not interval:
                 block.pos = [-200, 50]
                 self.background.draw()
                 self.pic2.draw()
                 block.draw()
+                temp = event.getKeys(keyList=self.keys)
                 self.win.flip()
                 while len(pressedKeys) < len(expKeys):
                     intervalTimer = time.clock()
@@ -401,6 +464,14 @@ class Action(object):
                         interval = True
                         break
                     getKeys = event.getKeys(keyList=self.rightKeys)
+                    if len(getKeys) != 0:
+                        for i in range(len(getKeys)):
+                            if i == 0:
+                                timeStamp.append(int(start.getTime() * 1000))
+                            else:
+                                timeStamp.append(0)
+                        start = core.Clock()
+                    actualKeys.extend(getKeys)
                     pressedKeys.extend(getKeys)
             #### changing response keys into easy-to-read + writing to results file ####   
             
@@ -418,15 +489,27 @@ class Action(object):
             miss = "".join(sorted(miss, key = lambda x:  self.srtMap[x])) # sort them by keyboard space
             if len(miss) == 0:
                 miss = 'NA'
-            accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+            accKeys = "".join([x for x in pressedKeys if x in expKeys])
+            if len(accKeys) == 0:
+                accKeys = 'NA'                    
             expKeys = "".join(expKeys)
             Acc = 0 if expKeys==pressedKeys else 1 # accuracy is 1 if all and only correct keys were pressed
-            pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+            
+            pressedOnset, pressedRhyme = self.split(actualKeys)
+            #print pressedOnset
+            #print pressedRhyme
+            
+#            pressedOnset = "".join(x for x in pressedKeys if x in self.leftKeys)
+#            if len(pressedOnset) == 0:
+#                pressedOnset = 'NA'
             expOnset = expKeys[0: len(expKeys) - 1]
-            pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+#            pressedRhyme = "".join(x for x in pressedKeys if x in self.rightKeys)
+#            if len(pressedRhyme) == 0:
+#                pressedRhyme = 'NA'
             expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-            onsetAcc = 1 if expOnset == pressedOnset else 0
-            rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+            onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
+            rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
+            
             conCluster = 0
             if len(expOnset) == 2:
                 conCluster = 1
@@ -434,8 +517,17 @@ class Action(object):
                             "rep", "wordInd", curWord,
                             expKeys, pressedKeys, Acc, RT,  
                             len(accKeys), accKeys, add, miss, 'NA','NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster,stage]      
-            print string
-            line='\t'.join(string) + '\n'
+            #print string
+            stamps = ''
+            index = 0
+            for index in range(3 - len(actualKeys)):
+                actualKeys.append('NA')
+                timeStamp.append('NA')
+            index = 0
+            for index in range(len(actualKeys)):
+                stamps += '\t' + str(actualKeys[index]) + '\t' + str(timeStamp[index])
+            line='\t'.join(string) + stamps + '\n'
+            print line
             self.resultsFile.write(line)
             self.resultsFile.flush()
             self.background.draw()
@@ -507,6 +599,8 @@ class Action(object):
                         pressedUnits = [] # not important (translates keys into corresponding sounds)
                         add = [] # keys pressed that were not in word
                         miss = [] # keys not pressed (but should have been)
+                        actualKeys = []
+                        timeStamp = []
                         RT = 'NA' # reaction time, to be defined later            
                         expKeys = [self.capKeys[curWord[0]], self.capKeys[curWord[1:]]] # define correct answer keys per word, separated by onset vs rhyme
                         if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
@@ -521,16 +615,23 @@ class Action(object):
                         
                         # getting responses and reaction time - first zero all variables
                         RT = 'NA'
-                        start = time.clock()
+                        start = core.Clock()
                         react = False
                         #### getting responses ####
                     
                         while len(pressedKeys) < len(expKeys):
                             getKeys = event.getKeys(keyList=self.keys)
-                            if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
-                                end = time.clock() 
-                                RT = int((end - start) * 1000)  # check how much time passed since we started the RT clock
-                                react = True 
+                            if len(getKeys) != 0: # if we haven't collected RTs yet
+                                if react == False:
+                                    RT = int(start.getTime() * 1000)  # check how much time passed since we started the RT clock
+                                    react = True
+                                for i in range(len(getKeys)):
+                                    if i == 0:
+                                        timeStamp.append(int(start.getTime() * 1000))
+                                    else:
+                                        timeStamp.append(0)
+                                start = core.Clock()
+                            actualKeys.extend(getKeys)
                             pressedKeys.extend(getKeys)  
                         pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
                         pressedKeys2 = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
@@ -548,16 +649,26 @@ class Action(object):
                         miss = "".join(sorted(miss, key = lambda x:  self.srtMap[x])) # sort them by keyboard space
                         if len(miss) == 0:
                             miss = 'NA'
-                        accKeys = "".join([x for x in pressedKeys if x in expKeys])                    
+                        accKeys = "".join([x for x in pressedKeys if x in expKeys])   
+                        if len(accKeys) == 0:
+                            accKeys = 'NA'
                         expKeys = "".join(expKeys)
-                        
                         Acc = 0 if expKeys==pressedKeys else 1
-                        pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                        
+                        pressedOnset, pressedRhyme = self.split(actualKeys)
+                        #print pressedOnset
+                        #print pressedRhyme
+                        
+#                        pressedOnset = "".join(x for x in pressedKeys if x in self.leftKeys)
+#                        if len(pressedOnset) == 0:
+#                            pressedOnset = 'NA'
                         expOnset = expKeys[0: len(expKeys) - 1]
-                        pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+#                        pressedRhyme = "".join(x for x in pressedKeys if x in self.rightKeys)
+#                        if len(pressedRhyme) == 0:
+#                            pressedRhyme = 'NA'
                         expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                        onsetAcc = 1 if expOnset == pressedOnset else 0
-                        rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                        onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
+                        rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
                         conCluster = 0
                         if len(expOnset) == 2:
                             conCluster = 1
@@ -565,7 +676,16 @@ class Action(object):
                                     "rep", self.wordInd, curWord,
                                     expKeys, pressedKeys, Acc, RT,  
                                     len(accKeys), accKeys, add, miss, 'NA', 'NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster, stage]              
-                        line='\t'.join(string) + '\n'
+                        
+                        stamps = ''
+                        index = 0
+                        for index in range(3 - len(actualKeys)):
+                            actualKeys.append('NA')
+                            timeStamp.append('NA')
+                        index = 0
+                        for index in range(len(actualKeys)):
+                            stamps += '\t' + str(actualKeys[index]) + '\t' + str(timeStamp[index])
+                        line='\t'.join(string) + stamps + '\n'
                         self.resultsFile.write(line)
                         self.resultsFile.flush()
                         if Acc == 1:
@@ -611,7 +731,9 @@ class Action(object):
                             pressedWord = [] # translates key presses into corresponding word
                             pressedUnits = [] # not important
                             add = [] # keys pressed that were not in word
-                            miss = [] # keys not pressed         
+                            miss = [] # keys not pressed      
+                            actualKeys = []
+                            timeStamp = []
                             expKeys = [self.capKeys[curWord[0]], self.capKeys[curWord[1:]]] # define correct answer keys per word
                             if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
                                 expKeys.append('3') # this is hard coded, see if there's a better way...
@@ -628,10 +750,17 @@ class Action(object):
                             
                             while len(pressedKeys) < len(expKeys):
                                 getKeys = event.getKeys(keyList=self.keys)
-                                if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
-                                    #end = time.clock() 
-                                    RT = int(start.getTime() * 1000)  # check how much time passed since we started the RT clock
-                                    react = True 
+                                if len(getKeys) != 0: # if we haven't collected RTs yet
+                                    if react == False:
+                                        RT = int(start.getTime() * 1000)  # check how much time passed since we started the RT clock
+                                        react = True
+                                    for i in range(len(getKeys)):
+                                        if i == 0:
+                                            timeStamp.append(int(start.getTime() * 1000))
+                                        else:
+                                            timeStamp.append(0)
+                                    start = core.Clock()
+                                actualKeys.extend(getKeys)
                                 pressedKeys.extend(getKeys)  
                             event.clearEvents()
                             pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
@@ -663,12 +792,19 @@ class Action(object):
                                 accKeys = 'NA'
                             expKeys = "".join(expKeys)
                             Acc = 0 if expKeys==pressedKeys else 1
-                            pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                            
+                            pressedOnset, pressedRhyme = self.split(actualKeys)
+                            
+#                            pressedOnset = "".join(x for x in pressedKeys if x in self.leftKeys)
+#                            if len(pressedOnset) == 0:
+#                                pressedOnset = 'NA'
                             expOnset = expKeys[0: len(expKeys) - 1]
-                            pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+#                            pressedRhyme = "".join(x for x in pressedKeys if x in self.rightKeys)
+#                            if len(pressedRhyme) == 0:
+#                                pressedRhyme = 'NA'
                             expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                            onsetAcc = 1 if expOnset == pressedOnset else 0
-                            rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                            onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
+                            rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
                             conCluster = 0
                             if len(expOnset) == 2:
                                 conCluster = 1
@@ -678,7 +814,15 @@ class Action(object):
                                     len(accKeys), accKeys, add, miss, 'NA', 'NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster, stage]              
                             print string 
                               
-                            line='\t'.join(string) + '\n'
+                            stamps = ''
+                            index = 0
+                            for index in range(3 - len(actualKeys)):
+                                actualKeys.append('NA')
+                                timeStamp.append('NA')
+                            index = 0
+                            for index in range(len(actualKeys)):
+                                stamps += '\t' + str(actualKeys[index]) + '\t' + str(timeStamp[index])
+                            line='\t'.join(string) + stamps + '\n'
                             self.resultsFile.write(line)
                             self.resultsFile.flush()
                             if Acc == 1:
@@ -700,6 +844,8 @@ class Action(object):
                             pressedUnits = [] # not important
                             add = [] # keys pressed that were not in word
                             miss = [] # keys not pressed
+                            actualKeys = []
+                            timeStamp = []
                             RT = 'NA' # reaction time, to be defined later     
                             curWord = trial[self.pacerLoc[self.wordInd]]
                             for i in self.transKeys.keys(): # translate it (since we used the full 'w1' spelling)
@@ -715,7 +861,7 @@ class Action(object):
                             self.pacer2 = visual.Rect(win=self.win,size=(1700,100),lineColor="black", pos = ([0,685]))
                             while True:
                                 self.draw4()
-                                if Acc == 0: # keep the red x up as long as accuracy equals 0
+                                if Acc == 1: # keep the red x up as long as accuracy equals 0
                                     self.wrongX.draw()
                                 if self.wordInd < 5:
                                     self.pacer.draw()
@@ -741,6 +887,13 @@ class Action(object):
                                             if react == False:
                                                 RT = int(start.getTime() * 1000)
                                                 react = True
+                                            for i in range(len(getKeys)):
+                                                if i == 0:
+                                                    timeStamp.append(int(start.getTime() * 1000))
+                                                else:
+                                                    timeStamp.append(0)
+                                            start = core.Clock()
+                                        actualKeys.extend(getKeys)
                                         pressedKeys.extend(getKeys)            
                                 else:
                                     if hitBoundary:
@@ -777,12 +930,19 @@ class Action(object):
                                             accKeys = 'NA'
                                         expKeys = "".join(expKeys)
                                         Acc = 0 if expKeys==pressedKeys else 1
-                                        pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                                        
+                                        pressedOnset, pressedRhyme = self.split(actualKeys)
+                                        
+#                                        pressedOnset = "".join(x for x in pressedKeys if x in self.leftKeys)
+#                                        if len(pressedOnset) == 0:
+#                                            pressedOnset = 'NA'
                                         expOnset = expKeys[0: len(expKeys) - 1]
-                                        pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+#                                        pressedRhyme = "".join(x for x in pressedKeys if x in self.rightKeys)
+#                                        if len(pressedRhyme) == 0:
+#                                            pressedRhyme = 'NA'
                                         expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                                        onsetAcc = 1 if expOnset == pressedOnset else 0
-                                        rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                                        onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
+                                        rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
                                         conCluster = 0
                                         if len(expOnset) == 2:
                                             conCluster = 1
@@ -791,12 +951,27 @@ class Action(object):
                                             if len(accCount) > 120:
                                                 accCount = accCount[1: len(accCount)]
                                             accRate = 1- round((float(sum(accCount))/len(accCount)), 2)
+                                        if accRate == 'NA':
+                                            errRate = 'NA'
+                                        else:
+                                            errRate = 1.0 - float(accRate)
                                         string=[str(var) for var in self.subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                                   rep, self.wordInd, curWord, 
                                                                                   expKeys, pressedKeys, Acc, RT,  
-                                                                                  len(accKeys), accKeys, add, miss, accRate, 1 - accRate, expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster, stage]              
-                                        print string 
-                                        line='\t'.join(string) + '\n'
+                                                                                  len(accKeys), accKeys, add, miss, accRate, errRate, expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster, stage]              
+                                        print string
+                                        #print actualKeys
+                                        #print timeStamp
+                                        stamps = ''
+                                        index = 0
+                                        for index in range(3 - len(actualKeys)):
+                                            actualKeys.append('NA')
+                                            timeStamp.append('NA')
+                                        index = 0
+                                        for index in range(len(actualKeys)):
+                                            stamps += '\t' + str(actualKeys[index]) + '\t' + str(timeStamp[index])
+                                        line='\t'.join(string) + stamps + '\n'
+                                        
                                         self.resultsFile.write(line)
                                         self.resultsFile.flush()
                                         hitBoundary = False
@@ -808,6 +983,8 @@ class Action(object):
                                         pressedUnits = [] # not important
                                         add = [] # keys pressed that were not in word
                                         miss = [] # keys not pressed
+                                        actualKeys = []
+                                        timeStamp = []
                                         RT = 'NA' # reaction time, to be defined later     
                                         if self.wordInd < 5:
                                             curWord = trial[self.pacerLoc[self.wordInd]]
@@ -880,7 +1057,7 @@ class Action(object):
         self.header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                                 "expKeys", "pressedKeys", 
                                 "err", "RT", "countCorrect", "correctKeys", 
-                                "addedKeys", "missingKeys", 'accRate', 'errRate', 'expOnset', 'pressedOnset', 'onsetAcc', 'expRhyme', 'pressedRhyme', 'rhymeAcc', 'conCluster']
+                                "addedKeys", "missingKeys", 'accRate', 'errRate', 'expOnset', 'pressedOnset', 'onsetAcc', 'expRhyme', 'pressedRhyme', 'rhymeAcc', 'conCluster', 'key1', 'stamp1', 'key2', 'stamp2', 'key3', 'stamp3']
         self.headers = '\t'.join(self.header) + '\n'
         #headers="subject\ttrialNum\ttrialType\titemID\trep\twordInd\tcurWord\texpKeys\tpressedKeys\tacc\tRT\tcountCorrect\tcorrectKeys\taddedKeys\tmissingKeys\taccRate\n"
         
@@ -919,6 +1096,8 @@ class Action(object):
                     pressedUnits = [] # not important
                     add = [] # keys pressed that were not in word
                     miss = [] # keys not pressed
+                    actualKeys = []
+                    timeStamp = []
                     RT = 'NA' # reaction time, to be defined later            
                     expKeys = [self.capKeys[curWord[0]], self.capKeys[curWord[1:]]] # define correct answer keys per word
                     if curWord[0] == 'L': # for words with consonant cluster, add first consonant key to be expected too
@@ -946,9 +1125,17 @@ class Action(object):
                 
                     while len(pressedKeys) < len(expKeys):
                         getKeys = event.getKeys(keyList=self.keys)
-                        if react == False and len(getKeys) != 0: # if we haven't collected RTs yet
-                            RT = int(start.getTime() * 1000)  # check how much time passed since we started the RT clock
-                            react = True 
+                        if len(getKeys) != 0: # if we haven't collected RTs yet
+                            if react == False:  
+                                RT = int(start.getTime() * 1000)  # check how much time passed since we started the RT clock
+                                react = True
+                            for i in range(len(getKeys)):
+                                if i == 0:
+                                    timeStamp.append(int(start.getTime() * 1000))
+                                else:
+                                    timeStamp.append(0)
+                            start = core.Clock()
+                        actualKeys.extend(getKeys)
                         pressedKeys.extend(getKeys)    
                     event.clearEvents()
                     pressedKeys1 = pressedKeys[0: len(pressedKeys) - 1]
@@ -981,12 +1168,19 @@ class Action(object):
                         accKeys = 'NA'
                     expKeys = "".join(expKeys)
                     Acc = 0 if expKeys==pressedKeys else 1
-                    pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                    
+                    pressedOnset, pressedRhyme = self.split(actualKeys)
+                    
+#                    pressedOnset = "".join(x for x in pressedKeys if x in self.leftKeys)
+#                    if len(pressedOnset) == 0:
+#                        pressedOnset = 'NA'
                     expOnset = expKeys[0: len(expKeys) - 1]
-                    pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+#                    pressedRhyme = "".join(x for x in pressedKeys if x in self.rightKeys)
+#                    if len(pressedRhyme) == 0:
+#                        pressedRhyme = 'NA'
                     expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                    onsetAcc = 1 if expOnset == pressedOnset else 0
-                    rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                    onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
+                    rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
                     conCluster = 0
                     if len(expOnset) == 2:
                         conCluster = 1
@@ -995,7 +1189,15 @@ class Action(object):
                             expKeys, pressedKeys, Acc, RT,  
                             len(accKeys), accKeys, add, miss, 'NA', 'NA', expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster]              
                     print string               
-                    line='\t'.join(string) + '\n'
+                    stamps = ''
+                    index = 0
+                    for index in range(3 - len(actualKeys)):
+                        actualKeys.append('NA')
+                        timeStamp.append('NA')
+                    index = 0
+                    for index in range(len(actualKeys)):
+                        stamps += '\t' + str(actualKeys[index]) + '\t' + str(timeStamp[index])
+                    line='\t'.join(string) + stamps + '\n'
                     self.resultsFile.write(line)
                     self.resultsFile.flush()
                     getKeys = []
@@ -1013,6 +1215,8 @@ class Action(object):
                     pressedUnits = [] # not important
                     add = [] # keys pressed that were not in word
                     miss = [] # keys not pressed
+                    actualKeys = []
+                    timeStamp = []
                     RT = 'NA' # reaction time, to be defined later     
                     curWord = trial[self.pacerLoc[self.wordInd]]
                     for i in self.transKeys.keys(): # translate it (since we used the full 'w1' spelling)
@@ -1051,6 +1255,13 @@ class Action(object):
                                     if react == False:
                                         RT = int(startt.getTime() * 1000)
                                         react = True
+                                    for i in range(len(getKeys)):
+                                        if i == 0:
+                                            timeStamp.append(int(start.getTime() * 1000))
+                                        else:
+                                            timeStamp.append(0)
+                                    start = core.Clock()
+                                actualKeys.extend(getKeys)
                                 pressedKeys.extend(getKeys)            
                         else:
                             if hitBoundary:
@@ -1087,21 +1298,32 @@ class Action(object):
                                     accKeys = 'NA'
                                 expKeys = "".join(expKeys)
                                 Acc = 0 if expKeys==pressedKeys else 1
-                                pressedOnset = pressedKeys[0: len(pressedKeys) - 1]
+                                
+                                pressedOnset, pressedRhyme = self.split(actualKeys)
+                                
+#                                pressedOnset = "".join(x for x in pressedKeys if x in self.leftKeys)
+#                                if len(pressedOnset) == 0:
+#                                    pressedOnset = 'NA'
                                 expOnset = expKeys[0: len(expKeys) - 1]
-                                pressedRhyme = pressedKeys[len(pressedKeys) - 1: len(pressedKeys)]
+#                                pressedRhyme = "".join(x for x in pressedKeys if x in self.rightKeys)
+#                                if len(pressedRhyme) == 0:
+#                                    pressedRhyme = 'NA'
                                 expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                                onsetAcc = 1 if expOnset == pressedOnset else 0
-                                rhymeAcc = 1 if expRhyme == pressedRhyme else 0
+                                onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
+                                rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
                                 conCluster = 0
                                 if len(expOnset) == 2:
                                     conCluster = 1
                                 accCount.append(Acc)
                                 accRate = 1 - round(float(sum(accCount))/len(accCount), 2)
+                                if accRate == 'NA':
+                                    errRate = 'NA'
+                                else:
+                                    errRate = 1.0 - float(accRate)
                                 string=[str(var) for var in self.subject, trialNum, trial['type'], trial['ID'],  # collect all the info we're interested in
                                                                           rep, self.wordInd, curWord, 
                                                                           expKeys, pressedKeys, Acc, RT,  
-                                                                          len(accKeys), accKeys, add, miss, accRate, 1 - accRate, expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster]              
+                                                                          len(accKeys), accKeys, add, miss, accRate, errRate, expOnset, pressedOnset, onsetAcc, expRhyme, pressedRhyme, rhymeAcc, conCluster]              
                                 print string 
                                 
                                 hitBoundary = False
@@ -1125,10 +1347,20 @@ class Action(object):
                                 expKeys = sorted(expKeys, key = lambda x:  self.srtMap[x])
                                 react = False
                                 temp = event.getKeys(keyList=self.keys)
-                                line='\t'.join(string) + '\n'
+                                stamps = ''
+                                index = 0
+                                for index in range(3 - len(actualKeys)):
+                                    actualKeys.append('NA')
+                                    timeStamp.append('NA')
+                                index = 0
+                                for index in range(len(actualKeys)):
+                                    stamps += '\t' + str(actualKeys[index]) + '\t' + str(timeStamp[index])
+                                line='\t'.join(string) + stamps + '\n'
                                 self.resultsFile.write(line)
                                 self.resultsFile.flush()
-                                getKeys = []     
+                                getKeys = []
+                                actualKeys = []
+                                timeStamp = []
                 self.background.draw()                              
                 self.fixationCross.draw()
                 self.win.flip()
