@@ -53,44 +53,49 @@ class Language(object):
         self.pacerTempo = .55 # speed of pacer
         self.timeBreak = 80 # every how many seconds do they get a break screen
         
-        self.header=["trialNum", "trialType", "itemID", "rep", "wordInd", "curWord"]
+        self.header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "audioName", "curWord", "expOnset", "expVowel", "expCoda"
+                     , "expRhyme", "conCluster", "respWord", "respOnset", "respVowel", "respCoda", "respRhyme", "acc", "RT"]
         self.headers = '\t'.join(self.header) + '\n'
         ### R = tr, L = vl, x = ee. changed for programming purposes of keeping all words same length
-        self.units=['t','R','v','L','eb','xb','ig','ug']
-        self.onsets=['t','R','v','L']
+        self.units=['k','R','s','L','eb','xb','ig','ug']
+        self.allUnits = {'k':'k', 'R':'kr', 's':'s', 'L':'sl', 'e':'e', 'x':'ee', 'i':'i', 'u': 'oo', 'b':'b', 'g':'g'}
+        self.onsets=['k','R','s','L']
         self.rhymes=['eb','xb','ig','ug']
         
-        self.transLetter = {'R':'tr', 'L':'fl', 'x':'ee','u': 'oo'}
+        self.transKeys = {'R':'kr', 'L':'sl', 'x':'ee','u': 'oo'}
         
         
-    def start(self):
+    def start(self, subjectNum = '-999'):
         from psychopy import visual, core
         self.createTrials()
-        self.setSubject()
+        if subjectNum == '-999':
+            self.setSubject()
+        else:
+            self.subject = subjectNum
         self.win = visual.Window([800, 500], fullscr=True,
                         color="black", units='pix')
 
         self.instruct = visual.TextStim(win=self.win, height=28, 
-                         color='black', wrapWidth = 1000, pos = (0,67), alignHoriz='center', 
+                         color='black', wrapWidth = 1000, pos = (0,43), alignHoriz='center', 
                          alignVert='center')
         self.instruct1 = "In the final part of this experiment you will be reading sequences of words.\
-         These are not real words, so we'll start by getting you familiar with\
-         them. Each word will be presented in the middle of the screen, and \
-         your job is to simply say it loud and clear."
+ These are not real words, so we'll start by getting you familiar with\
+ them. Each word will be presented in the middle of the screen, and \
+ your job is to simply say it loud and clear."
         
         self.instruct2a = "Great! Now we can move on to the task itself.\
-         \n\n On each trial you will be presented with four words.\
-         Your task is to simply read them aloud in order, from top to bottom."
+ \n\n On each trial you will be presented with four words.\
+ Your task is to simply read them aloud in order, from top to bottom."
         
         self.instruct2b = "At the beginning of every trial you will see a\
-         red circle on the top left for two seconds. You can use this\
-         time to quickly preview the words you will be reading. Then, the\
-         red circle will disappear and a small blue circle will appear. \
-         \n\nThe blue circle is your cue - when it appears next to a word, \
-         you read that word aloud. The blue circle will always move in order, \
-         from top to bottom, but you must keep up with its speed. Every trial\
-         will be repeated three times before moving on to the next. \
-         \n\n\nLet's get started!" 
+ red circle on the top left for two seconds. You can use this\
+ time to quickly preview the words you will be reading. Then, the\
+ red circle will disappear and a small blue circle will appear. \
+ \n\nThe blue circle is your cue - when it appears next to a word, \
+ you read that word aloud. The blue circle will always move in order, \
+ from top to bottom, but you must keep up with its speed. Every trial\
+ will be repeated three times before moving on to the next. \
+ \n\n\nLet's get started!" 
         
         self.background = visual.Rect(win=self.win, size = (2250, 900), fillColor = 'white', pos = ([0,0]))
         
@@ -164,7 +169,10 @@ class Language(object):
         dlg.show();
         
         if dlg.OK:
-            self.subject = dlg.data[0]
+            if len(dlg.data[0]) != 0:
+                self.subject = dlg.data[0]
+            else:
+                self.subject = '999'
         else:
             self.subject = '999'
     
@@ -243,6 +251,19 @@ class Language(object):
             trialNum = 0 # initiating order for familiarization phase
             for word in self.allWords:
                 trialNum+=1
+                
+                actual = word
+                for i in self.transKeys.keys():
+                    actual = actual.replace(self.transKeys[i], i)
+                #print actual
+                expOnset = self.allUnits[actual[0]]
+                expVowel = self.allUnits[actual[1]]
+                expCoda = self.allUnits[actual[2]]
+                expRhyme = expVowel + expCoda
+                conCluster = 0 if len(expOnset) == 1 else 1
+                audioName = self.subject + "_fam.wav"
+                
+                
                 self.word0.setText(word)
                 self.background.draw()
                 self.word0.draw()
@@ -252,7 +273,9 @@ class Language(object):
                 self.fixationCross.draw()
                 self.win.flip()
                 core.wait(1)
-                string = [str(var) for var in self.subject, word, trialNum]
+                string = [str(var) for var in self.subject, trialNum, "itemID", "rep", "wordInd", audioName, word, expOnset, expVowel,
+                          expCoda, expRhyme, conCluster, '', '', '', '', '', '', '']
+                print string
                 line= '\t'.join(string) + '\n'
                 self.resultsFile.write(line)
                 self.resultsFile.flush()
@@ -291,7 +314,7 @@ class Language(object):
                 core.wait(.4) # big red circle disappears, nothing on screen for 1 sec ;
                              # then small blue circle appears and participants must begin              
                 audioName = (self.subject + "_" + str(trialNum) + ".wav")
-                recorder = _Recorder(self.subject + "_fam.wav", self.SCALE, self.CHANNELS, self.RATE, self.BUFFER, self.AUDIO)
+                recorder = _Recorder(self.subject + "_" + str(trialNum) + ".wav", self.SCALE, self.CHANNELS, self.RATE, self.BUFFER, self.AUDIO)
                 recorder.start()
                 for rep in range(1,4):
                     
@@ -304,15 +327,28 @@ class Language(object):
                     #pacer.draw()
                     #win.flip()
                     for curWord in trial['fullTrial'].split():
-                        self.wordInd += 1           
+                        self.wordInd += 1      
+                        
+                        actual = curWord
+                        for i in self.transKeys.keys():
+                            actual = actual.replace(self.transKeys[i], i)
+                        #print actual
+                        expOnset = self.allUnits[actual[0]]
+                        expVowel = self.allUnits[actual[1]]
+                        expCoda = self.allUnits[actual[2]]
+                        expRhyme = expVowel + expCoda
+                        conCluster = 0 if len(expOnset) == 1 else 1
+                        
+                        
                         self.write4()
                         self.pacer.draw()
                         self.win.flip()                
                         self.pacerTime=core.Clock()              
                         core.wait(self.pacerTempo) # wait full time even if participant answered before time's up
         
-                        string=[str(var) for var in trialNum, trial['type'], trial['ID'], 
-                                rep, self.wordInd, curWord, audioName]              
+                        string=[str(var) for var in self.subject, trialNum, trial['type'], trial['ID'], 
+                                rep, self.wordInd, audioName, curWord, expOnset, expVowel, expCoda, expRhyme, conCluster,
+                                '', '', '', '', '', '', '']              
                         print string               
                         line='\t'.join(string) + '\n'
                         self.resultsFile.write(line)
@@ -345,10 +381,8 @@ class Language(object):
             self.win.flip()
             core.wait(5)
             
-            
-language = Language()
-language.start()
+      
         
-        
-        
-        
+if __name__ == '__main__':
+    language = Language()
+    language.start()

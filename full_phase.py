@@ -72,8 +72,8 @@ class Action(object):
                         color="black", units='pix')
         self.endText=visual.TextStim(win=self.win, height=40,
                          text="Practice phase completed!\n\nFinally, we can move on to the\
-                         task itself. It is exactly the same as what you've been doing,\
-                         except this time there will be no feedback.\n\nDo your best!",
+task itself. It is exactly the same as what you've been doing,\
+except this time there will be no feedback.\n\nDo your best!",
                          color='black')
         
         self.wrongText=visual.TextStim(win=self.win, height=40, 
@@ -117,14 +117,14 @@ class Action(object):
         
         # intructions for the first part
         self.instruct1 = "In this task you will see a template of 8 small boxes on the screen,\
-        corresponding to the 8 keys you have your fingers on:"
+ corresponding to the 8 keys you have your fingers on:"
         
         
         # appears on the same screen as the previous, but on the bottom
         self.instruct1b =  visual.TextStim(win=self.win, height=27, 
                                     text ="Your job is to press only the keys of the boxes colored in black.\
-                                    First press the keys on the left side (left hand only), and then the right.\
-                                    be as quick and accurate as you can!\
+ First press the keys on the left side (left hand only), and then the right.\
+ be as quick and accurate as you can!\
                                     \n\n\tPress 'c' to begin.",
                          color='black', wrapWidth = 1000, pos = (0,-125), alignHoriz='center', 
                          alignVert='center')
@@ -132,26 +132,26 @@ class Action(object):
         
         self.instruct1c = "Great, looks like you're starting to get the hang of it.\
         \n\nFrom now on, if you don't press the correct keys\
-         you will see a red X on the bottom right of the screen. Let's try to avoid that!"
+ you will see a red X on the bottom right of the screen. Let's try to avoid that!"
         
         
         # different instructions that can be set for the general "instruct" object
         self.instruct2 = "Nice work!\nNow we can begin with full practice trials.\n\nEvery trial\
-         consists of four templates. First you will have them appear one at a time\
-         like you just practiced.\nThen, all 4 templates will appear on the\
-         screen at once. Your task is to press the correct keys for each\
-         template in order, from top to bottom. You will repeat the\
-         whole sequence 3 times."
+ consists of four templates. First you will have them appear one at a time\
+ like you just practiced.\nThen, all 4 templates will appear on the\
+ screen at once. Your task is to press the correct keys for each\
+ template in order, from top to bottom. You will repeat the\
+ whole sequence 3 times."
          
-        self.instruct2b = "A rectangle will scroll down from the top of\
-         the screen, indicating when you should press each template.\
-         You can press the keys from the first moment the rectangle touches\
-         the template, even if it's only partially overlapping.\
-         Remember - for each template you first press the keys on the left side,\
-         and then those on the right.\
-         Make sure to keep up with the rectangle's speed!\n\nOnce you reach a high\
-         level of accuracy, the practice phase will end and we can move\
-         on to the task itself."
+        self.instruct2b = "\nA rectangle will scroll down from the top of\
+ the screen, indicating when you should press each template.\
+ You can press the keys from the first moment the rectangle touches\
+ the template, even if it's only partially overlapping.\
+ Remember - for each template you first press the keys on the left side,\
+ and then those on the right.\
+ Make sure to keep up with the rectangle's speed!\n\nOnce you reach a high\
+ level of accuracy, the practice phase will end and we can move\
+ on to the task itself."
          
 
         # message to appear if they're 65 - 84% accurate:
@@ -159,9 +159,9 @@ class Action(object):
          
          
         self.phaseComplete = "First Phase Completed!\n\n Now we can finally get\
-            to the task itself. No special instructions this time - it's\
-            exactly what you've been doing until now, just keep it up and\
-            do your best. \n\nGood luck!"
+ to the task itself. No special instructions this time - it's\
+ exactly what you've been doing until now, just keep it up and\
+ do your best. \n\nGood luck!"
         
         # for participants to press 'c' when they've read instructions on that page
         # and are ready to continue:
@@ -175,7 +175,7 @@ class Action(object):
         self.header=["subject", "trialNum", "trialType", "itemID", "rep", "wordInd", "curWord", 
                                 "expKeys", "pressedKeys", 
                                 "err", "RT", "countCorrect", "correctKeys", 
-                                "addedKeys", "missingKeys","accRate", "errRate", "expOnset", "pressedOnset", "onsetAcc", "expRhyme", "pressedRhyme", "rhymeAcc", "conCluster", "stage", "key1", "stamp1", "key2", "stamp2", "key3", "stamp3"]
+                                "addedKeys", "missingKeys","accRate", "errRate", "expOnset", "pressedOnset", "onsetErr", "expRhyme", "pressedRhyme", "rhymeErr", "conCluster", "stage", "key1", "stamp1", "key2", "stamp2", "key3", "stamp3"]
         self.headers = '\t'.join(self.header) + '\n'
         #headers="subject\ttrialNum\ttrialType\titemID\trep\twordInd\tcurWord\texpKeys\tpressedKeys\tacc\tRT\tcountCorrect\tcorrectKeys\taddedKeys\tmissingKeys\taccRate\tstage\n"
         
@@ -383,7 +383,7 @@ class Action(object):
                 pressOnset = "".join(actualOnset)
             if len(actualRhyme) != 0:
                 pressRhyme = "".join(actualRhyme)
-            return pressOnset, pressRhyme
+        return pressOnset, pressRhyme
                     
                     
             
@@ -507,8 +507,8 @@ class Action(object):
 #            if len(pressedRhyme) == 0:
 #                pressedRhyme = 'NA'
             expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-            onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
-            rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
+            onsetAcc = 1 if set(expOnset) != set(pressedOnset) else 0
+            rhymeAcc = 1 if set(expRhyme) != set(pressedRhyme) else 0
             
             conCluster = 0
             if len(expOnset) == 2:
@@ -667,8 +667,8 @@ class Action(object):
 #                        if len(pressedRhyme) == 0:
 #                            pressedRhyme = 'NA'
                         expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                        onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
-                        rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
+                        onsetAcc = 1 if set(expOnset) != set(pressedOnset) else 0
+                        rhymeAcc = 1 if set(expRhyme) != set(pressedRhyme) else 0
                         conCluster = 0
                         if len(expOnset) == 2:
                             conCluster = 1
@@ -803,8 +803,8 @@ class Action(object):
 #                            if len(pressedRhyme) == 0:
 #                                pressedRhyme = 'NA'
                             expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                            onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
-                            rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
+                            onsetAcc = 1 if set(expOnset) != set(pressedOnset) else 0
+                            rhymeAcc = 1 if set(expRhyme) != set(pressedRhyme) else 0
                             conCluster = 0
                             if len(expOnset) == 2:
                                 conCluster = 1
@@ -941,8 +941,8 @@ class Action(object):
 #                                        if len(pressedRhyme) == 0:
 #                                            pressedRhyme = 'NA'
                                         expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                                        onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
-                                        rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
+                                        onsetAcc = 1 if set(expOnset) != set(pressedOnset) else 0
+                                        rhymeAcc = 1 if set(expRhyme) != set(pressedRhyme) else 0
                                         conCluster = 0
                                         if len(expOnset) == 2:
                                             conCluster = 1
@@ -1037,7 +1037,7 @@ class Action(object):
                          text="Please take a short break. Press 'c' to continue.",
                          color='black')
         self.finalText=visual.TextStim(win=self.win, height=40,
-                         text="All Done! Please call the experimenter.",
+                         text="You've completed the action part! Please call the experimenter.",
                          color='black')
         
         
@@ -1179,8 +1179,8 @@ class Action(object):
 #                    if len(pressedRhyme) == 0:
 #                        pressedRhyme = 'NA'
                     expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                    onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
-                    rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
+                    onsetAcc = 1 if set(expOnset) != set(pressedOnset) else 0
+                    rhymeAcc = 1 if set(expRhyme) != set(pressedRhyme) else 0
                     conCluster = 0
                     if len(expOnset) == 2:
                         conCluster = 1
@@ -1309,8 +1309,8 @@ class Action(object):
 #                                if len(pressedRhyme) == 0:
 #                                    pressedRhyme = 'NA'
                                 expRhyme = expKeys[len(expKeys) - 1: len(expKeys)]
-                                onsetAcc = 1 if set(expOnset) == set(pressedOnset) else 0
-                                rhymeAcc = 1 if set(expRhyme) == set(pressedRhyme) else 0
+                                onsetAcc = 1 if set(expOnset) != set(pressedOnset) else 0
+                                rhymeAcc = 1 if set(expRhyme) != set(pressedRhyme) else 0
                                 conCluster = 0
                                 if len(expOnset) == 2:
                                     conCluster = 1
@@ -1383,6 +1383,6 @@ class Action(object):
             core.wait(5)
     
     
-        
-action = Action()
-action.start()
+if __name__ == '__main__':
+    action = Action()
+    action.start()
